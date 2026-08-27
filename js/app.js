@@ -497,7 +497,6 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       spine +
       "</div>" +
       '<div class="dk-cardbody">' +
-      '<div class="dk-face dk-face-front">' +
       '<div class="dk-lang">' +
       esc(askDa ? tt("danishLabel") : tt("homeLangLabel")) +
       "</div>" +
@@ -506,21 +505,18 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '">' +
       esc(promptTxt) +
       "</p>" +
-      (askDa && speechOK ? speakBtn : "") +
-      "</div>";
+      (askDa && speechOK ? speakBtn : "");
 
     if (revealed) {
       html +=
-        '<div class="dk-face dk-face-back">' +
-        '<div class="dk-lang">' +
+        '<div class="dk-rule"></div><div class="dk-lang">' +
         esc(askDa ? tt("homeLangLabel") : tt("danishLabel")) +
         '</div><p class="dk-word dk-word-b' +
         (answerTxt.length > 14 ? " long" : "") +
         '">' +
         esc(answerTxt) +
         "</p>" +
-        (!askDa && speechOK ? speakBtn : "") +
-        "</div>";
+        (!askDa && speechOK ? speakBtn : "");
     }
     html += "</div>";
 
