@@ -256,6 +256,57 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     } catch (e) {}
   }
 
+  /* -------------------------------- sfx ------------------------------ */
+  // Always-on sound effects - no volume/mute control (the OS mute switch
+  // covers that). Each clip is cloned per play so overlapping triggers
+  // (e.g. quick successive swipes) don't cut each other off; playback is
+  // best-effort and silently no-ops where the browser blocks it.
+
+  var SFX_SRC = {
+    reveal: "audio/reveal.mp3",
+    correct: "audio/correct.mp3",
+    wrong: "audio/wrong.mp3",
+    runEnd: "audio/run-end.mp3",
+    missionEnd: "audio/mission-end.mp3",
+  };
+  var sfx = {};
+  for (var sfxKey in SFX_SRC) {
+    if (!Object.prototype.hasOwnProperty.call(SFX_SRC, sfxKey)) continue;
+    try {
+      sfx[sfxKey] = new Audio(SFX_SRC[sfxKey]);
+      sfx[sfxKey].preload = "auto";
+    } catch (e) {}
+  }
+
+  function playSfx(name) {
+    var el = sfx[name];
+    if (!el) return;
+    try {
+      var node = el.cloneNode(true);
+      var p = node.play();
+      if (p && p["catch"]) p["catch"](function () {});
+    } catch (e) {}
+  }
+
+  // Mobile browsers only allow audio playback that originates from a real
+  // user gesture, so prime every clip on the first touch/pointer event
+  // (mirrors unlockSpeech below) - later programmatic plays (e.g. the
+  // run-end sound firing from a setTimeout) then go through cleanly.
+  var sfxUnlocked = false;
+  function unlockSfx() {
+    if (sfxUnlocked) return;
+    sfxUnlocked = true;
+    for (var k in sfx) {
+      if (!Object.prototype.hasOwnProperty.call(sfx, k)) continue;
+      try {
+        var p = sfx[k].play();
+        if (p && p["catch"]) p["catch"](function () {});
+        sfx[k].pause();
+        sfx[k].currentTime = 0;
+      } catch (e) {}
+    }
+  }
+
   /* ----------------------------- scheduler --------------------------- */
 
   function remaining() {
@@ -620,6 +671,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   function doReveal() {
     if (revealed || busy) return;
     revealed = true;
+    playSfx("reveal");
 
     var card = document.getElementById("dk-card");
     var ans = document.getElementById("dk-answer");
@@ -637,6 +689,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   function answer(knew) {
     if (busy || !current) return;
     busy = true;
+    playSfx(knew ? "correct" : "wrong");
     var da = current.da;
     var prev = S.stats[da] || { right: 0, wrong: 0, retired: false };
     S.stats[da] = {
@@ -652,7 +705,8 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runWrong += knew ? 0 : 1;
     S.runResults.push(knew);
     S.runWords.push(da);
-    if (S.runStep === RUN_LEN) {
+    var runJustEnded = S.runStep === RUN_LEN;
+    if (runJustEnded) {
       // Run just finished - fold its tally into the mission running total.
       S.missionRun++;
       S.missionRight += S.runRight;
@@ -675,6 +729,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       revealed = false;
       busy = false;
       renderStudy();
+      if (runJustEnded) playSfx(S.missionRun >= MISSION_LEN ? "missionEnd" : "runEnd");
     }, 300);
   }
 
@@ -1153,8 +1208,12 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     };
 
   initSpeech();
-  document.addEventListener("pointerdown", unlockSpeech, true);
-  document.addEventListener("touchstart", unlockSpeech, true);
+  function unlockAudio() {
+    unlockSpeech();
+    unlockSfx();
+  }
+  document.addEventListener("pointerdown", unlockAudio, true);
+  document.addEventListener("touchstart", unlockAudio, true);
 
   load().then(function () {
     try {
