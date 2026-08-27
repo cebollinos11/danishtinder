@@ -201,7 +201,8 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
         synth.addEventListener("voiceschanged", function () {
           var had = voice;
           pickVoice();
-          if (!had && voice && view === "study") renderStudy();
+          if (!had && voice && view === "study" && S.home && !pickerOpen)
+            renderStudy();
         });
       else
         synth.onvoiceschanged = function () {
@@ -505,19 +506,18 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '">' +
       esc(promptTxt) +
       "</p>" +
-      (askDa && speechOK ? speakBtn : "");
-
-    if (revealed) {
-      html +=
-        '<div class="dk-rule"></div><div class="dk-lang">' +
-        esc(askDa ? tt("homeLangLabel") : tt("danishLabel")) +
-        '</div><p class="dk-word dk-word-b' +
-        (answerTxt.length > 14 ? " long" : "") +
-        '">' +
-        esc(answerTxt) +
-        "</p>" +
-        (!askDa && speechOK ? speakBtn : "");
-    }
+      (askDa && speechOK ? speakBtn : "") +
+      '<div class="dk-answer' +
+      (revealed ? "" : " is-blurred") +
+      '"><div class="dk-rule"></div><div class="dk-lang">' +
+      esc(askDa ? tt("homeLangLabel") : tt("danishLabel")) +
+      '</div><p class="dk-word dk-word-b' +
+      (answerTxt.length > 14 ? " long" : "") +
+      '">' +
+      esc(answerTxt) +
+      "</p>" +
+      (!askDa && speechOK ? speakBtn : "") +
+      "</div>";
     html += "</div>";
 
     card.innerHTML = html;
