@@ -53,14 +53,16 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .v-yes{right:14px;background:var(--teal);transform:rotate(6deg);}
 .v-no{left:14px;background:var(--red);transform:rotate(-6deg);}
 
-.dk-cardbody{flex:1;min-width:0;padding:26px 22px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;min-height:170px;}
+.dk-cardbody{position:relative;flex:1;min-width:0;min-height:170px;}
+.dk-face{padding:26px 22px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;height:100%;box-sizing:border-box;}
+.dk-face-back{position:absolute;inset:0;background:var(--card);animation:dkFaceIn .22s cubic-bezier(.2,.8,.3,1);}
+@keyframes dkFaceIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .dk-lang{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
 .dk-word{font-size:clamp(27px,8.5vw,38px);font-weight:700;letter-spacing:-.035em;line-height:1.05;margin:2px 0 0;
   max-width:100%;overflow-wrap:break-word;word-break:break-word;hyphens:auto;}
 .dk-word.long{font-size:clamp(19px,5.4vw,24px);letter-spacing:-.02em;line-height:1.2;}
 .dk-word-b{font-weight:500;}
 .dk-speak{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);padding:6px 11px;border-radius:100px;border:1px solid rgba(35,94,90,.28);}
-.dk-rule{height:1px;background:var(--line);width:100%;margin:16px 0 12px;}
 
 .dk-controls{width:100%;}
 .dk-reveal{width:100%;background:var(--ink);color:var(--paper);padding:17px;border-radius:3px;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;}
@@ -138,7 +140,8 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
   .dk-brandname{font-size:15px;}
   .dk-tab{padding:7px 8px;font-size:10px;}
   .dk-stage{padding:14px 13px calc(22px + env(safe-area-inset-bottom));}
-  .dk-cardbody{padding:20px 16px;min-height:132px;}
+  .dk-face{padding:20px 16px;}
+  .dk-cardbody{min-height:132px;}
   .dk-panelwrap{padding:14px 13px calc(34px + env(safe-area-inset-bottom));}
   .dk-grid{grid-template-columns:1fr 1fr;}
   .dk-grid .dk-metric:first-child{grid-column:span 2;}
