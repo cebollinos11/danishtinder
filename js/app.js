@@ -509,7 +509,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       (askDa && speechOK ? speakBtn : "") +
       '<div class="dk-answer' +
       (revealed ? "" : " is-blurred") +
-      '"><div class="dk-rule"></div><div class="dk-lang">' +
+      '" id="dk-answer"><div class="dk-rule"></div><div class="dk-lang">' +
       esc(askDa ? tt("homeLangLabel") : tt("danishLabel")) +
       '</div><p class="dk-word dk-word-b' +
       (answerTxt.length > 14 ? " long" : "") +
@@ -595,7 +595,16 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   function doReveal() {
     if (revealed || busy) return;
     revealed = true;
-    paintCard();
+
+    var card = document.getElementById("dk-card");
+    var ans = document.getElementById("dk-answer");
+    if (ans) ans.classList.remove("is-blurred");
+    if (card) {
+      card.classList.add("is-live");
+      card.style.touchAction = "none";
+    }
+    paintControls();
+    if (S.autoSpeak && !askDa) speak(current.da);
   }
 
   /* ------------------------------ answering -------------------------- */
