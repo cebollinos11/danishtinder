@@ -353,6 +353,16 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     }
   }
 
+  function reducedMotion() {
+    try {
+      return (
+        window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
   function tt(key, vars) {
     return t(S.home, key, vars);
   }
@@ -778,16 +788,65 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     return out;
   }
 
-  function statTile(icon, num, label) {
+  function statTile(icon, label) {
     return (
       '<div class="dk-runend-stat"><div class="dk-runend-stat-ico">' +
       icon +
-      '</div><div class="dk-runend-stat-num">' +
-      num +
-      '</div><div class="dk-runend-stat-label">' +
+      '</div><div class="dk-runend-stat-num">0</div><div class="dk-runend-stat-label">' +
       esc(label) +
       "</div></div>"
     );
+  }
+
+  // Counts an element's text up from 0 to `target`, easing out. Skips the
+  // animation (and just sets the final value) under prefers-reduced-motion
+  // or when there's nothing to count up to.
+  function animateCount(el, target, opts) {
+    if (!el) return;
+    opts = opts || {};
+    var suffix = opts.suffix || "";
+    if (reducedMotion() || !target) {
+      el.textContent = target + suffix;
+      if (opts.onDone) opts.onDone();
+      return;
+    }
+    var duration = opts.duration || 650;
+    var start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+      else if (opts.onDone) opts.onDone();
+    }
+    requestAnimationFrame(step);
+  }
+
+  var CONFETTI_COLORS = ["#235E5A", "#C8102E", "#F2B705", "#3A6EA5", "#16181C"];
+
+  function confettiHtml(count) {
+    var out = '<div class="dk-confetti" aria-hidden="true">';
+    for (var i = 0; i < count; i++) {
+      var left = (Math.random() * 100).toFixed(1);
+      var delay = (Math.random() * 0.5).toFixed(2);
+      var duration = (1.7 + Math.random() * 1.2).toFixed(2);
+      var rotate = Math.round(Math.random() * 70 - 35);
+      var color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      out +=
+        '<i class="dk-confetti-piece" style="left:' +
+        left +
+        "%;background:" +
+        color +
+        ";animation-delay:" +
+        delay +
+        "s;animation-duration:" +
+        duration +
+        "s;transform:rotate(" +
+        rotate +
+        "deg)\"></i>";
+    }
+    return out + "</div>";
   }
 
   function renderRunEnd() {
@@ -797,6 +856,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     var missionComplete = S.missionRun >= MISSION_LEN;
     var runsLeft = MISSION_LEN - S.missionRun;
     var missed = missedWordsThisRun();
+    var pctClass = pct >= 90 ? " is-great" : pct < 50 ? " is-low" : "";
 
     var missedHtml = missed.length
       ? '<div class="dk-runend-missed"><div class="dk-runend-missed-title">💥 ' +
@@ -825,9 +885,11 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       (missionComplete ? "🏆 " : "🏁 ") +
       esc(missionComplete ? tt("missionCompleteTitle") : tt("runComplete")) +
       "</div>" +
-      '<div class="dk-runend-pct">' +
-      pct +
-      "%</div>" +
+      '<div class="dk-runend-pct' +
+      pctClass +
+      '" id="dk-runend-pct"><span id="dk-runend-pct-num">0</span>%' +
+      (pct === 100 ? '<span class="dk-runend-fire" aria-hidden="true">🔥</span>' : "") +
+      "</div>" +
       '<p class="dk-runend-text">' +
       esc(tt("runScoreLine", { right: S.runRight, total: total })) +
       "</p>" +
@@ -837,16 +899,37 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       "</div>" +
       missedHtml +
       '<div class="dk-runend-stats">' +
-      statTile("✅", S.missionRight, tt("missionCorrectLabel")) +
-      statTile("🎯", runsLeft, tt("runsLeftLabel", { n: runsLeft })) +
+      statTile("✅", tt("missionCorrectLabel")) +
+      statTile("🎯", tt("runsLeftLabel", { n: runsLeft })) +
       "</div>" +
-      '<button class="dk-runend-btn" id="dk-run-continue">' +
+      '<button class="dk-runend-btn' +
+      (missionComplete ? " is-complete" : "") +
+      '" id="dk-run-continue">' +
       (missionComplete ? "🚀 " : "") +
       esc(missionComplete ? tt("startNextMissionBtn") : tt("runContinueBtn")) +
       '<span class="dk-runend-next">' +
       esc(dirLabel(!daFirst)) +
       "</span></button>" +
+      (missionComplete && !reducedMotion() ? confettiHtml(28) : "") +
       "</div>";
+
+    var pctWrap = document.getElementById("dk-runend-pct");
+    animateCount(document.getElementById("dk-runend-pct-num"), pct, {
+      onDone: function () {
+        if (pctWrap) pctWrap.classList.add("is-pulsing");
+      },
+    });
+    var statEls = viewEl.querySelectorAll(".dk-runend-stat-num");
+    animateCount(statEls[0], S.missionRight, {
+      onDone: function () {
+        statEls[0].classList.add("is-pulsing");
+      },
+    });
+    animateCount(statEls[1], runsLeft, {
+      onDone: function () {
+        statEls[1].classList.add("is-pulsing");
+      },
+    });
 
     document.getElementById("dk-run-continue").onclick = startNextRun;
   }
