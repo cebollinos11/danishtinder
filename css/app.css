@@ -131,6 +131,25 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .dk-runend-btn{margin-top:10px;width:100%;background:var(--ink);color:var(--paper);padding:16px;border-radius:3px;font-size:15px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:5px;}
 .dk-runend-next{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.7;}
 
+.dk-mission-track{display:flex;align-items:center;justify-content:center;gap:5px;}
+.dk-mission-track span{font-size:19px;line-height:1;filter:grayscale(1);opacity:.4;}
+.dk-mission-track span.is-done{filter:none;opacity:1;}
+.dk-runend-progress{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+
+.dk-runend-missed{width:100%;background:var(--card);border:1px solid var(--line);border-radius:3px;padding:12px 14px;text-align:left;}
+.dk-runend-missed-title{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+.dk-runend-missed-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;}
+.dk-runend-missed-list li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;}
+.dk-runend-missed-da{font-weight:700;flex:none;}
+.dk-runend-missed-home{color:var(--muted);text-align:right;overflow-wrap:break-word;min-width:0;}
+.dk-runend-perfect{width:100%;font-size:13px;font-weight:600;color:var(--teal);background:rgba(35,94,90,.08);border:1px solid rgba(35,94,90,.25);border-radius:3px;padding:12px;}
+
+.dk-runend-stats{display:flex;gap:8px;width:100%;}
+.dk-runend-stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:3px;padding:11px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.dk-runend-stat-ico{font-size:17px;line-height:1;}
+.dk-runend-stat-num{font-size:20px;font-weight:800;letter-spacing:-.03em;line-height:1;}
+.dk-runend-stat-label{font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-align:center;}
+
 /* Touch devices: keyboard hints are noise, and the deck should not eat the screen */
 @media (pointer:coarse){
   .dk-hint{display:none;}

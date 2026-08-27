@@ -21,6 +21,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   var MISS_WEIGHT = 3;
   var SWIPE = 80;
   var RUN_LEN = 5;
+  var MISSION_LEN = 5; // runs per mission
 
   var S = {
     home: null,
@@ -33,6 +34,11 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     runRight: 0,
     runWrong: 0,
     runResults: [],
+    runWords: [],
+    missionRun: 0,
+    missionRight: 0,
+    missionWrong: 0,
+    missionsCompleted: 0,
   };
 
   var view = "study";
@@ -114,6 +120,11 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runRight = d.runRight || 0;
     S.runWrong = d.runWrong || 0;
     S.runResults = Array.isArray(d.runResults) ? d.runResults.slice(0, RUN_LEN) : [];
+    S.runWords = Array.isArray(d.runWords) ? d.runWords.slice(0, RUN_LEN) : [];
+    S.missionRun = Math.min(Math.max(d.missionRun || 0, 0), MISSION_LEN);
+    S.missionRight = d.missionRight || 0;
+    S.missionWrong = d.missionWrong || 0;
+    S.missionsCompleted = d.missionsCompleted || 0;
     var out = {};
     var src = d.stats || {};
     for (var k in src) {
@@ -640,6 +651,13 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runRight += knew ? 1 : 0;
     S.runWrong += knew ? 0 : 1;
     S.runResults.push(knew);
+    S.runWords.push(da);
+    if (S.runStep === RUN_LEN) {
+      // Run just finished - fold its tally into the mission running total.
+      S.missionRun++;
+      S.missionRight += S.runRight;
+      S.missionWrong += S.runWrong;
+    }
     save();
 
     var card = document.getElementById("dk-card");
@@ -660,23 +678,88 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     }, 300);
   }
 
-  // Flips study direction and starts the next 10-card run.
+  // Flips study direction and starts the next run, rolling over into a
+  // fresh mission every MISSION_LEN runs.
   function startNextRun() {
+    if (S.missionRun >= MISSION_LEN) {
+      S.missionsCompleted++;
+      S.missionRun = 0;
+      S.missionRight = 0;
+      S.missionWrong = 0;
+    }
     S.dir = S.dir === "da-home" ? "home-da" : "da-home";
     S.runStep = 0;
     S.runRight = 0;
     S.runWrong = 0;
     S.runResults = [];
+    S.runWords = [];
     current = pickNext(null);
     revealed = false;
     save();
     renderStudy();
   }
 
+  function missionDots() {
+    var out = '<div class="dk-mission-track">';
+    for (var i = 0; i < MISSION_LEN; i++)
+      out += '<span class="dk-mdot' + (i < S.missionRun ? " is-done" : "") + '">' + (i < S.missionRun ? "🟩" : "⬜") + "</span>";
+    return out + "</div>";
+  }
+
+  function missedWordsThisRun() {
+    var out = [];
+    for (var i = 0; i < S.runWords.length; i++) {
+      if (S.runResults[i] !== false) continue;
+      var da = S.runWords[i];
+      var w = null;
+      for (var j = 0; j < WORDS.length; j++) {
+        if (WORDS[j].da === da) {
+          w = WORDS[j];
+          break;
+        }
+      }
+      out.push({ da: da, home: w ? w[S.home] : "" });
+    }
+    return out;
+  }
+
+  function statTile(icon, num, label) {
+    return (
+      '<div class="dk-runend-stat"><div class="dk-runend-stat-ico">' +
+      icon +
+      '</div><div class="dk-runend-stat-num">' +
+      num +
+      '</div><div class="dk-runend-stat-label">' +
+      esc(label) +
+      "</div></div>"
+    );
+  }
+
   function renderRunEnd() {
     var total = S.runRight + S.runWrong;
     var pct = total ? Math.round((S.runRight / total) * 100) : 0;
     var daFirst = S.dir === "da-home";
+    var missionComplete = S.missionRun >= MISSION_LEN;
+    var runsLeft = MISSION_LEN - S.missionRun;
+    var missed = missedWordsThisRun();
+
+    var missedHtml = missed.length
+      ? '<div class="dk-runend-missed"><div class="dk-runend-missed-title">💥 ' +
+        esc(tt("missedThisRun")) +
+        '</div><ul class="dk-runend-missed-list">' +
+        missed
+          .map(function (m) {
+            return (
+              "<li><span class=\"dk-runend-missed-da\">🇩🇰 " +
+              esc(m.da) +
+              '</span><span class="dk-runend-missed-home">' +
+              esc(m.home) +
+              "</span></li>"
+            );
+          })
+          .join("") +
+        "</ul></div>"
+      : '<div class="dk-runend-perfect">🎉 ' + esc(tt("perfectRunText")) + "</div>";
 
     viewEl.innerHTML =
       '<div class="dk-runend">' +
@@ -684,7 +767,8 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       esc(dirLabel(daFirst)) +
       "</div>" +
       '<div class="dk-runend-title">' +
-      esc(tt("runComplete")) +
+      (missionComplete ? "🏆 " : "🏁 ") +
+      esc(missionComplete ? tt("missionCompleteTitle") : tt("runComplete")) +
       "</div>" +
       '<div class="dk-runend-pct">' +
       pct +
@@ -692,8 +776,18 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '<p class="dk-runend-text">' +
       esc(tt("runScoreLine", { right: S.runRight, total: total })) +
       "</p>" +
+      missionDots() +
+      '<div class="dk-runend-progress">🚀 ' +
+      esc(tt("missionProgress", { n: S.missionRun, total: MISSION_LEN })) +
+      "</div>" +
+      missedHtml +
+      '<div class="dk-runend-stats">' +
+      statTile("✅", S.missionRight, tt("missionCorrectLabel")) +
+      statTile("🎯", runsLeft, tt("runsLeftLabel", { n: runsLeft })) +
+      "</div>" +
       '<button class="dk-runend-btn" id="dk-run-continue">' +
-      esc(tt("runContinueBtn")) +
+      (missionComplete ? "🚀 " : "") +
+      esc(missionComplete ? tt("startNextMissionBtn") : tt("runContinueBtn")) +
       '<span class="dk-runend-next">' +
       esc(dirLabel(!daFirst)) +
       "</span></button>" +
@@ -989,6 +1083,11 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
         S.runRight = 0;
         S.runWrong = 0;
         S.runResults = [];
+        S.runWords = [];
+        S.missionRun = 0;
+        S.missionRight = 0;
+        S.missionWrong = 0;
+        S.missionsCompleted = 0;
         current = null;
         revealed = false;
         try {
