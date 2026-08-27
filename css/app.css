@@ -222,6 +222,20 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .dk-langbtn{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;padding:7px 10px;border-radius:100px;border:1px solid var(--line);color:var(--muted);}
 .dk-langbtn:hover{border-color:var(--ink);color:var(--ink);}
 
+.dk-settingswrap{position:relative;}
+.dk-settingsbtn{display:flex;align-items:center;justify-content:center;width:29px;height:29px;
+  border-radius:100px;border:1px solid var(--line);color:var(--muted);}
+.dk-settingsbtn:hover{border-color:var(--ink);color:var(--ink);}
+.dk-settingsmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:20;min-width:190px;
+  background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px;
+  box-shadow:0 10px 28px rgba(22,24,28,.16);}
+.dk-settingsmenu[hidden]{display:none;}
+.dk-settingsmenu-item{display:block;width:100%;text-align:left;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.05em;text-transform:uppercase;padding:10px 11px;border-radius:5px;color:var(--muted);}
+.dk-settingsmenu-item:hover{background:var(--paper);color:var(--ink);}
+.dk-settingsmenu-item.is-danger{color:var(--red);}
+.dk-settingsmenu-item.is-danger:hover{background:rgba(200,16,46,.09);}
+
 .dk-picker{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;
   padding:60px 20px;margin:auto;width:100%;max-width:420px;}
 .dk-picker-title{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.25;}

@@ -369,6 +369,13 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
 
   /* ------------------------------- header ------------------------------ */
 
+  function closeSettingsMenu() {
+    var menu = document.getElementById("dk-settingsmenu");
+    var btn = document.getElementById("dk-settingsbtn");
+    if (menu) menu.hidden = true;
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+
   function syncHeader() {
     var nav = document.getElementById("dk-nav");
     var show = !!S.home && !pickerOpen;
@@ -387,6 +394,13 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       langbtn.textContent = S.home.toUpperCase();
       langbtn.title = tt("changeLanguage");
     }
+
+    var settingsBtn = document.getElementById("dk-settingsbtn");
+    if (settingsBtn) settingsBtn.title = tt("settingsBtn");
+    var nukeBtn = document.getElementById("dk-nukebtn");
+    if (nukeBtn) nukeBtn.textContent = tt("nukeProgress");
+
+    closeSettingsMenu();
   }
 
   /* ------------------------------- views ----------------------------- */
@@ -1212,32 +1226,36 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
         esc(tt("resetCancel")) +
         "</button>";
       document.getElementById("dk-no2").onclick = renderStats;
-      document.getElementById("dk-yes2").onclick = function () {
-        S.stats = {};
-        S.step = 0;
-        S.totals = { right: 0, wrong: 0 };
-        S.dir = "da-home";
-        S.runStep = 0;
-        S.runRight = 0;
-        S.runWrong = 0;
-        S.runResults = [];
-        S.runWords = [];
-        S.missionRun = 0;
-        S.missionRight = 0;
-        S.missionWrong = 0;
-        S.missionsCompleted = 0;
-        current = null;
-        revealed = false;
-        try {
-          window.localStorage.removeItem(KEY);
-        } catch (e) {}
-        try {
-          if (hasStore()) window.storage["delete"](KEY);
-        } catch (e) {}
-        save();
-        setView("study");
-      };
+      document.getElementById("dk-yes2").onclick = nukeProgress;
     };
+  }
+
+  // Wipes all learning progress (stats, runs, missions) but keeps the
+  // chosen home language, then drops the user back on the practice tab.
+  function nukeProgress() {
+    S.stats = {};
+    S.step = 0;
+    S.totals = { right: 0, wrong: 0 };
+    S.dir = "da-home";
+    S.runStep = 0;
+    S.runRight = 0;
+    S.runWrong = 0;
+    S.runResults = [];
+    S.runWords = [];
+    S.missionRun = 0;
+    S.missionRight = 0;
+    S.missionWrong = 0;
+    S.missionsCompleted = 0;
+    current = null;
+    revealed = false;
+    try {
+      window.localStorage.removeItem(KEY);
+    } catch (e) {}
+    try {
+      if (hasStore()) window.storage["delete"](KEY);
+    } catch (e) {}
+    save();
+    setView("study");
   }
 
   function metric(label, val, sub) {
@@ -1288,6 +1306,28 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     langbtn.onclick = function () {
       pickerOpen = true;
       render();
+    };
+
+  var settingsBtnEl = document.getElementById("dk-settingsbtn");
+  var settingsMenuEl = document.getElementById("dk-settingsmenu");
+  if (settingsBtnEl && settingsMenuEl) {
+    settingsBtnEl.onclick = function (e) {
+      e.stopPropagation();
+      var opening = settingsMenuEl.hidden;
+      settingsMenuEl.hidden = !opening;
+      settingsBtnEl.setAttribute("aria-expanded", opening ? "true" : "false");
+    };
+    settingsMenuEl.onclick = function (e) {
+      e.stopPropagation();
+    };
+    document.addEventListener("click", closeSettingsMenu);
+  }
+
+  var nukeBtnEl = document.getElementById("dk-nukebtn");
+  if (nukeBtnEl)
+    nukeBtnEl.onclick = function () {
+      closeSettingsMenu();
+      if (window.confirm(tt("nukeConfirm"))) nukeProgress();
     };
 
   initSpeech();

@@ -37,6 +37,10 @@ export var HOME_LANGUAGES = {
       tabWords: "Words",
       tabStats: "Progress",
       changeLanguage: "Change language",
+      settingsBtn: "Settings",
+      nukeProgress: "Delete all progress",
+      nukeConfirm:
+        "This will permanently delete all your progress. This can't be undone. Continue?",
 
       pickerTitle: "Which language do you speak?",
       pickerSub: "Pick your language to start learning Danish.",
@@ -116,6 +120,10 @@ export var HOME_LANGUAGES = {
       tabWords: "Слова",
       tabStats: "Прогрес",
       changeLanguage: "Змінити мову",
+      settingsBtn: "Налаштування",
+      nukeProgress: "Видалити весь прогрес",
+      nukeConfirm:
+        "Це назавжди видалить увесь ваш прогрес. Дію не можна скасувати. Продовжити?",
 
       pickerTitle: "Якою мовою ви розмовляєте?",
       pickerSub:
