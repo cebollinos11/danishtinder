@@ -44,7 +44,10 @@ export var HOME_LANGUAGES = {
 
       leftOf: "{left} of {total} left",
       scoreLine: "{right} ok / {wrong} missed",
-      dirMixed: "Mixed",
+      runOf: "{step} / {total} this run",
+      runComplete: "Run complete",
+      runScoreLine: "{right} of {total} correct",
+      runContinueBtn: "Start next run",
       readAloud: "Read out loud",
       noSpeech: "This browser has no speech engine, so pronunciation is off.",
       noDanishVoice:
@@ -114,7 +117,10 @@ export var HOME_LANGUAGES = {
 
       leftOf: "залишилось {left} з {total}",
       scoreLine: "{right} правильно / {wrong} помилково",
-      dirMixed: "Змішано",
+      runOf: "{step} / {total} у цьому раунді",
+      runComplete: "Раунд завершено",
+      runScoreLine: "{right} з {total} правильно",
+      runContinueBtn: "Почати новий раунд",
       readAloud: "Читати вголос",
       noSpeech:
         "У цьому браузері немає рушія озвучення, тому вимова вимкнена.",

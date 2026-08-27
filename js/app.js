@@ -20,6 +20,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   var KEY = "dansk:v1";
   var MISS_WEIGHT = 3;
   var SWIPE = 80;
+  var RUN_LEN = 10;
 
   var S = {
     home: null,
@@ -28,6 +29,9 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     dir: "da-home",
     autoSpeak: false,
     totals: { right: 0, wrong: 0 },
+    runStep: 0,
+    runRight: 0,
+    runWrong: 0,
   };
 
   var view = "study";
@@ -36,7 +40,6 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   var revealed = false;
   var busy = false;
   var askDa = true;
-  var session = { right: 0, wrong: 0 };
   var query = "";
   var filter = "all";
   var voice = null;
@@ -90,10 +93,13 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
 
   // Older saves used "da-en"/"en-da" (home language was hardcoded to
   // English); map those onto the generic "da-home"/"home-da" directions.
+  // Saves from before "runs" existed may also carry the now-removed "mixed"
+  // direction - fold that (and anything else unrecognized) onto "da-home".
   function migrateDir(dir) {
     if (dir === "da-en") return "da-home";
     if (dir === "en-da") return "home-da";
-    return dir || "da-home";
+    if (dir === "da-home" || dir === "home-da") return dir;
+    return "da-home";
   }
 
   function applySaved(d) {
@@ -103,6 +109,9 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.dir = migrateDir(d.dir);
     S.autoSpeak = !!d.autoSpeak;
     S.totals = d.totals || { right: 0, wrong: 0 };
+    S.runStep = Math.min(Math.max(d.runStep || 0, 0), RUN_LEN);
+    S.runRight = d.runRight || 0;
+    S.runWrong = d.runWrong || 0;
     var out = {};
     var src = d.stats || {};
     for (var k in src) {
@@ -394,7 +403,17 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       };
   }
 
+  function dirLabel(daFirst) {
+    return daFirst
+      ? tt("danishLabel") + " → " + tt("homeLangLabel")
+      : tt("homeLangLabel") + " → " + tt("danishLabel");
+  }
+
   function renderStudy() {
+    if (S.runStep >= RUN_LEN) {
+      renderRunEnd();
+      return;
+    }
     if (!current) current = pickNext(null);
     if (!current) {
       viewEl.innerHTML =
@@ -411,7 +430,11 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '<div class="dk-meter"><span>' +
       esc(tt("leftOf", { left: left, total: WORDS.length })) +
       '</span><span class="dk-meter-sep"></span><span>' +
-      esc(tt("scoreLine", { right: session.right, wrong: session.wrong })) +
+      esc(dirLabel(S.dir === "da-home")) +
+      '</span><span class="dk-meter-sep"></span><span>' +
+      esc(tt("runOf", { step: S.runStep, total: RUN_LEN })) +
+      '</span><span class="dk-meter-sep"></span><span>' +
+      esc(tt("scoreLine", { right: S.runRight, wrong: S.runWrong })) +
       "</span></div>" +
       '<div class="dk-deck"><div class="dk-stack">' +
       '<div class="dk-shadow dk-shadow-2"></div>' +
@@ -421,11 +444,6 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '<div id="dk-controls" class="dk-controls"></div>' +
       '<p id="dk-swipehint" class="dk-swipehint"></p>' +
       '<div class="dk-settings">' +
-      '<div class="dk-seg-ctl">' +
-      dirBtn("da-home", "DA → " + S.home.toUpperCase()) +
-      dirBtn("home-da", S.home.toUpperCase() + " → DA") +
-      dirBtn("mixed", tt("dirMixed")) +
-      "</div>" +
       (speechOK
         ? '<button id="dk-auto" class="dk-toggle' +
           (S.autoSpeak ? " is-on" : "") +
@@ -441,17 +459,6 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
         : "") +
       "</div>";
 
-    var seg = document.querySelectorAll(".dk-segbtn");
-    for (var i = 0; i < seg.length; i++)
-      seg[i].onclick = (function (v) {
-        return function () {
-          S.dir = v;
-          revealed = false;
-          save();
-          renderStudy();
-        };
-      })(seg[i].getAttribute("data-dir"));
-
     var auto = document.getElementById("dk-auto");
     if (auto)
       auto.onclick = function () {
@@ -465,21 +472,8 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     paintCard();
   }
 
-  function dirBtn(v, label) {
-    return (
-      '<button class="dk-segbtn' +
-      (S.dir === v ? " is-on" : "") +
-      '" data-dir="' +
-      v +
-      '">' +
-      esc(label) +
-      "</button>"
-    );
-  }
-
   function paintCard() {
-    if (S.dir === "da-home") askDa = true;
-    else if (S.dir === "home-da") askDa = false;
+    askDa = S.dir === "da-home";
 
     var card = document.getElementById("dk-card");
     if (!card || !current) return;
@@ -619,8 +613,9 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.step++;
     S.totals.right += knew ? 1 : 0;
     S.totals.wrong += knew ? 0 : 1;
-    session.right += knew ? 1 : 0;
-    session.wrong += knew ? 0 : 1;
+    S.runStep++;
+    S.runRight += knew ? 1 : 0;
+    S.runWrong += knew ? 0 : 1;
     save();
 
     var card = document.getElementById("dk-card");
@@ -634,12 +629,52 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     }
 
     setTimeout(function () {
-      current = pickNext(da);
+      if (S.runStep < RUN_LEN) current = pickNext(da);
       revealed = false;
-      if (S.dir === "mixed") askDa = Math.random() < 0.5;
       busy = false;
       renderStudy();
     }, 300);
+  }
+
+  // Flips study direction and starts the next 10-card run.
+  function startNextRun() {
+    S.dir = S.dir === "da-home" ? "home-da" : "da-home";
+    S.runStep = 0;
+    S.runRight = 0;
+    S.runWrong = 0;
+    current = pickNext(null);
+    revealed = false;
+    save();
+    renderStudy();
+  }
+
+  function renderRunEnd() {
+    var total = S.runRight + S.runWrong;
+    var pct = total ? Math.round((S.runRight / total) * 100) : 0;
+    var daFirst = S.dir === "da-home";
+
+    viewEl.innerHTML =
+      '<div class="dk-runend">' +
+      '<div class="dk-runend-dir">' +
+      esc(dirLabel(daFirst)) +
+      "</div>" +
+      '<div class="dk-runend-title">' +
+      esc(tt("runComplete")) +
+      "</div>" +
+      '<div class="dk-runend-pct">' +
+      pct +
+      "%</div>" +
+      '<p class="dk-runend-text">' +
+      esc(tt("runScoreLine", { right: S.runRight, total: total })) +
+      "</p>" +
+      '<button class="dk-runend-btn" id="dk-run-continue">' +
+      esc(tt("runContinueBtn")) +
+      '<span class="dk-runend-next">' +
+      esc(dirLabel(!daFirst)) +
+      "</span></button>" +
+      "</div>";
+
+    document.getElementById("dk-run-continue").onclick = startNextRun;
   }
 
   /* -------------------------------- drag ----------------------------- */
@@ -924,7 +959,10 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
         S.stats = {};
         S.step = 0;
         S.totals = { right: 0, wrong: 0 };
-        session = { right: 0, wrong: 0 };
+        S.dir = "da-home";
+        S.runStep = 0;
+        S.runRight = 0;
+        S.runWrong = 0;
         current = null;
         revealed = false;
         try {
@@ -954,7 +992,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   /* ------------------------------ keyboard --------------------------- */
 
   document.addEventListener("keydown", function (e) {
-    if (view !== "study" || !S.home || pickerOpen) return;
+    if (view !== "study" || !S.home || pickerOpen || S.runStep >= RUN_LEN) return;
     var t2 = e.target;
     if (t2 && (t2.tagName === "INPUT" || t2.tagName === "TEXTAREA")) return;
     var k = e.key;

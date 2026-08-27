@@ -71,9 +71,6 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .dk-swipehint{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin:-4px 0 0;}
 
 .dk-settings{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;}
-.dk-seg-ctl{display:flex;border:1px solid var(--line);border-radius:100px;overflow:hidden;}
-.dk-segbtn{font-family:var(--mono);font-size:10px;padding:9px 13px;color:var(--muted);white-space:nowrap;}
-.dk-segbtn.is-on{background:var(--ink);color:var(--paper);}
 .dk-toggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:100px;padding:9px 14px;font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;}
 .dk-dot{width:7px;height:7px;border-radius:50%;background:rgba(22,24,28,.2);flex:none;}
 .dk-toggle.is-on{color:var(--teal);border-color:rgba(35,94,90,.35);}
@@ -118,6 +115,14 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .dk-done{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:50px 20px;margin:auto;}
 .dk-donenum{font-size:52px;font-weight:800;letter-spacing:-.05em;line-height:1;}
 .dk-donetext{font-size:14px;line-height:1.6;color:var(--muted);max-width:300px;}
+
+.dk-runend{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:50px 20px;margin:auto;width:100%;max-width:360px;}
+.dk-runend-dir{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.dk-runend-title{font-size:16px;font-weight:700;}
+.dk-runend-pct{font-size:52px;font-weight:800;letter-spacing:-.05em;line-height:1;margin-top:4px;}
+.dk-runend-text{font-size:13px;line-height:1.5;color:var(--muted);margin:0;}
+.dk-runend-btn{margin-top:10px;width:100%;background:var(--ink);color:var(--paper);padding:16px;border-radius:3px;font-size:15px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.dk-runend-next{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.7;}
 
 /* Touch devices: keyboard hints are noise, and the deck should not eat the screen */
 @media (pointer:coarse){
