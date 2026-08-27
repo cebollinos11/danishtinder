@@ -129,7 +129,8 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
   .dk-hint{display:none;}
 }
 @media (max-width:560px){
-  .dk-deck{flex:0 0 auto;min-height:0;align-items:flex-start;}
+  #dk-view{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .dk-deck{flex:0 0 auto;min-height:0;align-items:center;margin-top:auto;}
   .dk-stage{gap:14px;}
 }
 @media (max-width:420px){
