@@ -32,6 +32,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     runStep: 0,
     runRight: 0,
     runWrong: 0,
+    runResults: [],
   };
 
   var view = "study";
@@ -112,6 +113,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runStep = Math.min(Math.max(d.runStep || 0, 0), RUN_LEN);
     S.runRight = d.runRight || 0;
     S.runWrong = d.runWrong || 0;
+    S.runResults = Array.isArray(d.runResults) ? d.runResults.slice(0, RUN_LEN) : [];
     var out = {};
     var src = d.stats || {};
     for (var k in src) {
@@ -437,6 +439,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '</span><span class="dk-meter-sep"></span><span>' +
       esc(tt("scoreLine", { right: S.runRight, wrong: S.runWrong })) +
       "</span></div>" +
+      penaltyRow() +
       '<div class="dk-deck"><div class="dk-stack">' +
       '<div class="dk-shadow dk-shadow-2"></div>' +
       '<div class="dk-shadow dk-shadow-1"></div>' +
@@ -471,6 +474,17 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       };
 
     paintCard();
+  }
+
+  function penaltyRow() {
+    var out = '<div class="dk-penalties">';
+    for (var i = 0; i < RUN_LEN; i++) {
+      var r = S.runResults[i];
+      if (r === true) out += '<span class="dk-pen is-yes" title="' + esc(tt("knewIt")) + '">🇩🇰</span>';
+      else if (r === false) out += '<span class="dk-pen is-no" title="' + esc(tt("didntKnow")) + '">💩</span>';
+      else out += '<span class="dk-pen is-pending">🇩🇰</span>';
+    }
+    return out + "</div>";
   }
 
   function paintCard() {
@@ -625,6 +639,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runStep++;
     S.runRight += knew ? 1 : 0;
     S.runWrong += knew ? 0 : 1;
+    S.runResults.push(knew);
     save();
 
     var card = document.getElementById("dk-card");
@@ -651,6 +666,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runStep = 0;
     S.runRight = 0;
     S.runWrong = 0;
+    S.runResults = [];
     current = pickNext(null);
     revealed = false;
     save();
@@ -972,6 +988,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
         S.runStep = 0;
         S.runRight = 0;
         S.runWrong = 0;
+        S.runResults = [];
         current = null;
         revealed = false;
         try {
