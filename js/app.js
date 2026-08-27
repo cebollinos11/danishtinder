@@ -278,14 +278,23 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     } catch (e) {}
   }
 
-  function playSfx(name) {
+  function playSfx(name, onEnded) {
     var el = sfx[name];
-    if (!el) return;
+    if (!el) {
+      if (onEnded) onEnded();
+      return;
+    }
     try {
       var node = el.cloneNode(true);
+      if (onEnded) node.addEventListener("ended", onEnded, { once: true });
       var p = node.play();
-      if (p && p["catch"]) p["catch"](function () {});
-    } catch (e) {}
+      if (p && p["catch"])
+        p["catch"](function () {
+          if (onEnded) onEnded();
+        });
+    } catch (e) {
+      if (onEnded) onEnded();
+    }
   }
 
   // Mobile browsers only allow audio playback that originates from a real
@@ -695,7 +704,10 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   function doReveal() {
     if (revealed || busy) return;
     revealed = true;
-    playSfx("reveal");
+    var word = current;
+    playSfx("reveal", function () {
+      if (S.autoSpeak && !askDa && current === word) speak(word.da);
+    });
 
     var card = document.getElementById("dk-card");
     var ans = document.getElementById("dk-answer");
@@ -705,7 +717,6 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       card.style.touchAction = "none";
     }
     paintControls();
-    if (S.autoSpeak && !askDa) speak(current.da);
   }
 
   /* ------------------------------ answering -------------------------- */
