@@ -20,7 +20,7 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
   var KEY = "dansk:v1";
   var MISS_WEIGHT = 3;
   var SWIPE = 80;
-  var RUN_LEN = 10;
+  var RUN_LEN = 5;
 
   var S = {
     home: null,
