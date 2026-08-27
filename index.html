@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Learn Danish vocabulary by swiping through flashcards.">
+<title>Dansk</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div id="dk-root">
+  <header class="dk-top">
+    <div class="dk-brand"><span class="dk-flag"></span><span class="dk-brandname">Dansk</span></div>
+    <nav class="dk-nav" id="dk-nav" style="display:none;">
+      <button class="dk-tab is-on" data-view="study">Practice</button>
+      <button class="dk-tab" data-view="words">Words</button>
+      <button class="dk-tab" data-view="stats">Progress</button>
+      <button class="dk-langbtn" id="dk-langbtn" type="button">EN</button>
+    </nav>
+  </header>
+  <main id="dk-view"><div class="dk-loading">Loading&hellip; / Завантаження&hellip;</div></main>
+</div>
+
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>
