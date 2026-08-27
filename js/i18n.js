@@ -59,6 +59,9 @@ export var HOME_LANGUAGES = {
       missionCorrectLabel: "Correct this mission",
       runsLeftLabel: ["run left", "runs left"],
       startNextMissionBtn: "Start next mission",
+      xpBadgeTitle: "Total XP",
+      xpGainedLabel: "XP earned",
+      missionBonusLabel: "Mission bonus",
       readAloud: "Read out loud",
       noSpeech: "This browser has no speech engine, so pronunciation is off.",
       noDanishVoice:
@@ -147,6 +150,9 @@ export var HOME_LANGUAGES = {
         "раундів залишилось",
       ],
       startNextMissionBtn: "Почати нову місію",
+      xpBadgeTitle: "Загальний досвід",
+      xpGainedLabel: "Отримано XP",
+      missionBonusLabel: "Бонус місії",
       readAloud: "Читати вголос",
       noSpeech:
         "У цьому браузері немає рушія озвучення, тому вимова вимкнена.",

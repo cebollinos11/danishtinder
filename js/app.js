@@ -39,6 +39,9 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     missionRight: 0,
     missionWrong: 0,
     missionsCompleted: 0,
+    xp: 0,
+    runXpGain: 0,
+    missionXpGain: 0,
   };
 
   var view = "study";
@@ -125,6 +128,9 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.missionRight = d.missionRight || 0;
     S.missionWrong = d.missionWrong || 0;
     S.missionsCompleted = d.missionsCompleted || 0;
+    S.xp = d.xp || 0;
+    S.runXpGain = d.runXpGain || 0;
+    S.missionXpGain = d.missionXpGain || 0;
     var out = {};
     var src = d.stats || {};
     for (var k in src) {
@@ -396,6 +402,13 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       var dv = tabs[i].getAttribute("data-view");
       tabs[i].textContent = tt("tab" + dv.charAt(0).toUpperCase() + dv.slice(1));
       tabs[i].className = "dk-tab" + (dv === view ? " is-on" : "");
+    }
+
+    var xpBadge = document.getElementById("dk-xpbadge");
+    if (xpBadge) {
+      xpBadge.title = tt("xpBadgeTitle");
+      var xpNum = document.getElementById("dk-xpbadge-num");
+      if (xpNum) xpNum.textContent = S.xp;
     }
 
     var langbtn = document.getElementById("dk-langbtn");
@@ -746,6 +759,22 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       S.missionRun++;
       S.missionRight += S.runRight;
       S.missionWrong += S.runWrong;
+
+      // 1 XP per correct word this run, +1 more for a perfect run. If the
+      // mission also wraps up on this run, add its completion bonus - +20
+      // base, plus a tier bonus (+10/+20/+30) for hitting 80/90/100% mission
+      // accuracy - on top.
+      var missionJustCompleted = S.missionRun >= MISSION_LEN;
+      var missionXp = 0;
+      if (missionJustCompleted) {
+        var mTotal = S.missionRight + S.missionWrong;
+        var mPct = mTotal ? (S.missionRight / mTotal) * 100 : 0;
+        var tierBonus = mPct >= 100 ? 30 : mPct >= 90 ? 20 : mPct >= 80 ? 10 : 0;
+        missionXp = 20 + tierBonus;
+      }
+      S.runXpGain = S.runRight + (S.runWrong === 0 ? 1 : 0);
+      S.missionXpGain = missionXp;
+      S.xp += S.runXpGain + S.missionXpGain;
     }
     save();
 
@@ -783,6 +812,8 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.runWrong = 0;
     S.runResults = [];
     S.runWords = [];
+    S.runXpGain = 0;
+    S.missionXpGain = 0;
     current = pickNext(null);
     revealed = false;
     save();
@@ -830,7 +861,8 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     if (!el) return;
     opts = opts || {};
     var suffix = opts.suffix || "";
-    if (reducedMotion() || !target) {
+    var from = opts.from || 0;
+    if (reducedMotion() || target === from) {
       el.textContent = target + suffix;
       if (opts.onDone) opts.onDone();
       return;
@@ -841,11 +873,30 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       if (start === null) start = ts;
       var p = Math.min((ts - start) / duration, 1);
       var eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(eased * target) + suffix;
+      el.textContent = Math.round(from + eased * (target - from)) + suffix;
       if (p < 1) requestAnimationFrame(step);
       else if (opts.onDone) opts.onDone();
     }
     requestAnimationFrame(step);
+  }
+
+  // Rolls the header XP badge from its pre-run value up to the new total,
+  // fired once the run-end panel's own XP reveal has finished animating.
+  function animateHeaderXp(from, to) {
+    var el = document.getElementById("dk-xpbadge-num");
+    if (!el) return;
+    var badge = document.getElementById("dk-xpbadge");
+    animateCount(el, to, {
+      from: from,
+      duration: 700,
+      onDone: function () {
+        if (!badge || from === to) return;
+        badge.classList.add("is-pulsing");
+        setTimeout(function () {
+          badge.classList.remove("is-pulsing");
+        }, 500);
+      },
+    });
   }
 
   var CONFETTI_COLORS = ["#235E5A", "#C8102E", "#F2B705", "#3A6EA5", "#16181C"];
@@ -918,6 +969,16 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
       '<p class="dk-runend-text">' +
       esc(tt("runScoreLine", { right: S.runRight, total: total })) +
       "</p>" +
+      '<div class="dk-runend-xp-row">' +
+      '<div class="dk-runend-xp" id="dk-runend-xp"><span class="dk-runend-xp-plus">+</span><span class="dk-runend-xp-num" id="dk-runend-xp-num">0</span><span class="dk-runend-xp-label">' +
+      esc(tt("xpGainedLabel")) +
+      "</span></div>" +
+      (missionComplete
+        ? '<div class="dk-runend-xp dk-runend-xp-bonus" id="dk-runend-mxp"><span class="dk-runend-xp-plus">+</span><span class="dk-runend-xp-num" id="dk-runend-mxp-num">0</span><span class="dk-runend-xp-label">' +
+          esc(tt("missionBonusLabel")) +
+          "</span></div>"
+        : "") +
+      "</div>" +
       missionDots() +
       '<div class="dk-runend-progress">🚀 ' +
       esc(tt("missionProgress", { n: S.missionRun, total: MISSION_LEN })) +
@@ -953,6 +1014,30 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     animateCount(statEls[1], runsLeft, {
       onDone: function () {
         statEls[1].classList.add("is-pulsing");
+      },
+    });
+
+    // XP payout: tally the run's own points first, then (if the mission also
+    // wrapped up) the bigger completion bonus, then finally roll the header
+    // total up to match - a small cascade so the badge update reads as a
+    // consequence of what just happened, not a silent background change.
+    var xpBefore = S.xp - S.runXpGain - S.missionXpGain;
+    animateCount(document.getElementById("dk-runend-xp-num"), S.runXpGain, {
+      onDone: function () {
+        var xpEl = document.getElementById("dk-runend-xp");
+        if (xpEl && S.runXpGain > 0) xpEl.classList.add("is-pulsing");
+        if (missionComplete) {
+          animateCount(document.getElementById("dk-runend-mxp-num"), S.missionXpGain, {
+            duration: 800,
+            onDone: function () {
+              var mxpEl = document.getElementById("dk-runend-mxp");
+              if (mxpEl) mxpEl.classList.add("is-pulsing");
+              animateHeaderXp(xpBefore, S.xp);
+            },
+          });
+        } else {
+          animateHeaderXp(xpBefore, S.xp);
+        }
       },
     });
 
@@ -1257,6 +1342,9 @@ import { HOME_LANGUAGES, t } from "./i18n.js";
     S.missionRight = 0;
     S.missionWrong = 0;
     S.missionsCompleted = 0;
+    S.xp = 0;
+    S.runXpGain = 0;
+    S.missionXpGain = 0;
     current = null;
     revealed = false;
     try {
