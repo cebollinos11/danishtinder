@@ -15,8 +15,9 @@
 // DEFAULT_HOME rather than rendering blank.
 import en from "./en.js";
 import uk from "./uk.js";
+import tr from "./tr.js";
 
-export var HOME_LANGUAGES = { en: en, uk: uk };
+export var HOME_LANGUAGES = { en: en, uk: uk, tr: tr };
 
 export var DEFAULT_HOME = "en";
 

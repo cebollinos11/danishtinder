@@ -1,14 +1,14 @@
 # danishtinder
 Learn danish by swiping
 
-On first launch the app asks which language you speak (English or Ukrainian) and shows every Danish word's translation in that language from then on. You can change it later from the language button in the header.
+On first launch the app asks which language you speak (English, Ukrainian or Turkish) and shows every Danish word's translation in that language from then on. You can change it later from the language button in the header.
 
 ## Project layout
 
 - `index.html` - page shell
 - `css/app.css` - all styles
 - `js/app.js` - app logic (state, views, scheduler, speech, drag/swipe)
-- `js/i18n/` - UI text, one file per home language (`en.js`, `uk.js`) plus `index.js` (the language registry and `t()`)
+- `js/i18n/` - UI text, one file per home language (`en.js`, `uk.js`, `tr.js`) plus `index.js` (the language registry and `t()`)
 - `data/words.da.js` - the Danish vocabulary spine, one entry per line, in deck order
 - `data/words.<code>.js` - translations for one home language, as `<danish>|<translation>` per line
 - `data/words.js` - stitches the spine and the translation files into the word list

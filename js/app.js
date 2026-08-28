@@ -434,6 +434,10 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
   }
 
   function render() {
+    // The UI language drives locale-sensitive CSS: text-transform: uppercase
+    // maps Turkish "i" to "İ", not "I". Keep <html lang> on the home language,
+    // or on the default one while the picker is still up.
+    document.documentElement.lang = S.home && !pickerOpen ? S.home : DEFAULT_HOME;
     syncHeader();
     if (!S.home || pickerOpen) {
       renderPicker();
