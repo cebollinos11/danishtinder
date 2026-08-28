@@ -28,10 +28,10 @@ then open the printed local URL.
 ## Adding a home language
 
 1. Copy `data/words.en.js` to `data/words.<code>.js` and translate the right-hand side of every line. The Danish left-hand side is the key - leave it alone. Lines may be missing or out of order; anything absent just renders blank for that language, so a partial translation is safe to ship.
-2. Copy `js/i18n/en.js` to `js/i18n/<code>.js` and translate every value, including `name` and `nativeName`. Counted strings are objects keyed by `Intl.PluralRules` category - use the categories your language actually has (`one`/`other` for English, `one`/`few`/`many` for Ukrainian). You do not write a plural function; the category is derived from the language code. Keys you leave out fall back to English and warn in the console.
+2. Copy `js/i18n/en.js` to `js/i18n/<code>.js` and translate every value, including `name`, `nativeName`, and `flag` (an inline SVG, so flags need no image files or icon font). Counted strings are objects keyed by `Intl.PluralRules` category - use the categories your language actually has (`one`/`other` for English, `one`/`few`/`many` for Ukrainian). You do not write a plural function; the category is derived from the language code. Keys you leave out fall back to English and warn in the console.
 3. Register both halves: import the words file in `data/words.js` (add it to `TRANSLATION_SETS`) and the strings file in `js/i18n/index.js` (add it to `HOME_LANGUAGES`).
 
-The language picker, search, and every UI string pick up the new language automatically - no changes to `js/app.js` are needed. If you register only one of the two halves, the app warns about it in the console at startup.
+The language picker (which lists each language by its flag and its own name), search, and every UI string pick up the new language automatically - no changes to `js/app.js` are needed. If you register only one of the two halves, the app warns about it in the console at startup.
 
 ## Deployment
 

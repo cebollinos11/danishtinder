@@ -13,6 +13,15 @@ export default {
   code: "en",
   name: "English",
   nativeName: "English",
+  // Union Jack, simplified to the strokes that make it readable at 22px.
+  flag:
+    '<svg viewBox="0 0 20 15" aria-hidden="true">' +
+    '<rect width="20" height="15" fill="#012169"/>' +
+    '<path d="M0 0 20 15M20 0 0 15" stroke="#fff" stroke-width="3"/>' +
+    '<path d="M0 0 20 15M20 0 0 15" stroke="#C8102E" stroke-width="1.6"/>' +
+    '<path d="M10 0V15M0 7.5H20" stroke="#fff" stroke-width="5"/>' +
+    '<path d="M10 0V15M0 7.5H20" stroke="#C8102E" stroke-width="3"/>' +
+    '</svg>',
   strings: {
     loading: "Loading…",
     tabStudy: "Practice",
@@ -23,8 +32,8 @@ export default {
     nukeProgress: "Delete all progress",
     nukeConfirm: "This will permanently delete all your progress. This can't be undone. Continue?",
 
-    pickerTitle: "Which language do you speak?",
-    pickerSub: "Pick your language to start learning Danish.",
+    pickerTitle: "Pick your home language",
+    pickerSub: "Danish words will be shown with translations in this language.",
     pickerCancel: "Cancel",
 
     leftOf: "{left} of {total} left",

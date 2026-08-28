@@ -1,5 +1,5 @@
 import { WORDS, HOME_CODES } from "../data/words.js";
-import { HOME_LANGUAGES, t } from "./i18n/index.js";
+import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
 (function () {
   "use strict";
@@ -446,20 +446,13 @@ import { HOME_LANGUAGES, t } from "./i18n/index.js";
 
   function renderPicker() {
     var firstRun = !S.home;
-    var titleHtml, subHtml;
-    if (firstRun) {
-      titleHtml =
-        esc(HOME_LANGUAGES.en.strings.pickerTitle) +
-        "<br>" +
-        esc(HOME_LANGUAGES.uk.strings.pickerTitle);
-      subHtml =
-        esc(HOME_LANGUAGES.en.strings.pickerSub) +
-        " / " +
-        esc(HOME_LANGUAGES.uk.strings.pickerSub);
-    } else {
-      titleHtml = esc(tt("pickerTitle"));
-      subHtml = esc(tt("pickerSub"));
-    }
+    // On first run there's no chosen language yet, so the prompt is shown in
+    // the default one. Each option carries its own flag and its name written in
+    // that language, which is what a learner actually scans for - so the prompt
+    // itself doesn't need to be repeated per language.
+    var promptLang = firstRun ? HOME_LANGUAGES[DEFAULT_HOME].strings : null;
+    var titleHtml = esc(firstRun ? promptLang.pickerTitle : tt("pickerTitle"));
+    var subHtml = esc(firstRun ? promptLang.pickerSub : tt("pickerSub"));
 
     var opts = Object.keys(HOME_LANGUAGES)
       .map(function (code) {
@@ -468,9 +461,14 @@ import { HOME_LANGUAGES, t } from "./i18n/index.js";
           '<button class="dk-picker-opt" data-home="' +
           code +
           '">' +
+          // L.flag is inline SVG authored in js/i18n/<code>.js, i.e. our own
+          // markup rather than word data or user input - it goes in raw on
+          // purpose. Everything else here still goes through esc().
+          '<span class="dk-picker-flag">' +
+          (L.flag || "") +
+          "</span>" +
+          '<span class="dk-picker-name">' +
           esc(L.nativeName) +
-          '<span class="dk-picker-native">' +
-          esc(L.name) +
           "</span></button>"
         );
       })

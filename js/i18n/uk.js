@@ -13,6 +13,11 @@ export default {
   code: "uk",
   name: "Ukrainian",
   nativeName: "Українська",
+  flag:
+    '<svg viewBox="0 0 20 15" aria-hidden="true">' +
+    '<rect width="20" height="7.5" fill="#0057B7"/>' +
+    '<rect y="7.5" width="20" height="7.5" fill="#FFD700"/>' +
+    '</svg>',
   strings: {
     loading: "Завантаження…",
     tabStudy: "Практика",
@@ -23,8 +28,8 @@ export default {
     nukeProgress: "Видалити весь прогрес",
     nukeConfirm: "Це назавжди видалить увесь ваш прогрес. Дію не можна скасувати. Продовжити?",
 
-    pickerTitle: "Якою мовою ви розмовляєте?",
-    pickerSub: "Оберіть свою мову, щоб почати вивчати данську.",
+    pickerTitle: "Оберіть свою рідну мову",
+    pickerSub: "Данські слова показуватимуться з перекладом цією мовою.",
     pickerCancel: "Скасувати",
 
     leftOf: "залишилось {left} з {total}",
