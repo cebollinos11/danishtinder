@@ -16,8 +16,9 @@
 import en from "./en.js";
 import uk from "./uk.js";
 import tr from "./tr.js";
+import es from "./es.js";
 
-export var HOME_LANGUAGES = { en: en, uk: uk, tr: tr };
+export var HOME_LANGUAGES = { en: en, uk: uk, tr: tr, es: es };
 
 export var DEFAULT_HOME = "en";
 

@@ -13,8 +13,9 @@ import { DANISH } from "./words.da.js";
 import { TRANSLATIONS as en } from "./words.en.js";
 import { TRANSLATIONS as uk } from "./words.uk.js";
 import { TRANSLATIONS as tr } from "./words.tr.js";
+import { TRANSLATIONS as es } from "./words.es.js";
 
-var TRANSLATION_SETS = { en: en, uk: uk, tr: tr };
+var TRANSLATION_SETS = { en: en, uk: uk, tr: tr, es: es };
 
 // "da|translation" lines -> { danish: translation }. Blank lines are skipped so
 // translation files can be grouped into readable sections.
