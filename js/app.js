@@ -1328,9 +1328,12 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     };
   }
 
-  // Wipes all learning progress (stats, runs, missions) but keeps the
-  // chosen home language, then drops the user back on the practice tab.
+  // Full factory reset: wipes learning progress (stats, runs, missions) AND
+  // the chosen home language, so the app boots back into the first-run
+  // language picker exactly as it does on a fresh install.
   function nukeProgress() {
+    S.home = null;
+    S.autoSpeak = false;
     S.stats = {};
     S.step = 0;
     S.totals = { right: 0, wrong: 0 };
@@ -1349,14 +1352,24 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     S.missionXpGain = 0;
     current = null;
     revealed = false;
+    busy = false;
+    askDa = true;
+    query = "";
+    filter = "all";
+    pickerOpen = false;
+    // Drop any debounced write still in flight, otherwise it would re-create
+    // the key we are about to delete.
+    clearTimeout(saveTimer);
     try {
       window.localStorage.removeItem(KEY);
     } catch (e) {}
     try {
       if (hasStore()) window.storage["delete"](KEY);
     } catch (e) {}
-    save();
-    setView("study");
+    // setView() is a no-op without a home language, so go straight to
+    // render() - it takes us to the first-run picker.
+    view = "study";
+    render();
   }
 
   function metric(label, val, sub) {
