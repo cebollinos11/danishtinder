@@ -1,21 +1,21 @@
-import { WORDS_RAW } from "../data/words.js";
-import { HOME_LANGUAGES, t } from "./i18n.js";
+import { WORDS, HOME_CODES } from "../data/words.js";
+import { HOME_LANGUAGES, t } from "./i18n/index.js";
 
 (function () {
   "use strict";
 
-  // Column order in data/words.js - keep in sync with that file's header
-  // comment and with the keys of HOME_LANGUAGES in js/i18n.js.
-  var FIELDS = ["da", "en", "uk"];
-
-  var WORDS = WORDS_RAW.trim()
-    .split("\n")
-    .map(function (line) {
-      var parts = line.split("|");
-      var w = {};
-      for (var i = 0; i < FIELDS.length; i++) w[FIELDS[i]] = (parts[i] || "").trim();
-      return w;
-    });
+  // A home language needs both halves: UI strings in js/i18n/ and a word list
+  // in data/. Registering only one of the two is the easy mistake when adding a
+  // language, so say so at boot instead of failing quietly in the UI later.
+  (function checkLanguages() {
+    var ui = Object.keys(HOME_LANGUAGES);
+    for (var i = 0; i < ui.length; i++)
+      if (HOME_CODES.indexOf(ui[i]) < 0)
+        console.warn("[lang] " + ui[i] + " has UI strings but no data/words." + ui[i] + ".js");
+    for (var j = 0; j < HOME_CODES.length; j++)
+      if (ui.indexOf(HOME_CODES[j]) < 0)
+        console.warn("[lang] " + HOME_CODES[j] + " has words but no js/i18n/" + HOME_CODES[j] + ".js");
+  })();
 
   var KEY = "dansk:v1";
   var MISS_WEIGHT = 3;

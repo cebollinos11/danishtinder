@@ -8,8 +8,10 @@ On first launch the app asks which language you speak (English or Ukrainian) and
 - `index.html` - page shell
 - `css/app.css` - all styles
 - `js/app.js` - app logic (state, views, scheduler, speech, drag/swipe)
-- `js/i18n.js` - UI text per home language, plus the language picker's language list
-- `data/words.js` - the Danish vocabulary, one entry per line as `da|en|uk`
+- `js/i18n/` - UI text, one file per home language (`en.js`, `uk.js`) plus `index.js` (the language registry and `t()`)
+- `data/words.da.js` - the Danish vocabulary spine, one entry per line, in deck order
+- `data/words.<code>.js` - translations for one home language, as `<danish>|<translation>` per line
+- `data/words.js` - stitches the spine and the translation files into the word list
 
 No build step - it's plain ES modules loaded directly by the browser.
 
@@ -25,11 +27,11 @@ then open the printed local URL.
 
 ## Adding a home language
 
-1. Add a new column to every line in `data/words.js` (`da|en|uk|<code>`), keeping the existing columns unchanged.
-2. In `js/i18n.js`, add an entry to `HOME_LANGUAGES` with that language's code, its name (in English) and native name, and a full `strings` object translating every key (copy the `en` block as a starting point).
-3. In `js/app.js`, add the new code to the `FIELDS` array in the same position as the column you added.
+1. Copy `data/words.en.js` to `data/words.<code>.js` and translate the right-hand side of every line. The Danish left-hand side is the key - leave it alone. Lines may be missing or out of order; anything absent just renders blank for that language, so a partial translation is safe to ship.
+2. Copy `js/i18n/en.js` to `js/i18n/<code>.js` and translate every value, including `name` and `nativeName`. Counted strings are objects keyed by `Intl.PluralRules` category - use the categories your language actually has (`one`/`other` for English, `one`/`few`/`many` for Ukrainian). You do not write a plural function; the category is derived from the language code. Keys you leave out fall back to English and warn in the console.
+3. Register both halves: import the words file in `data/words.js` (add it to `TRANSLATION_SETS`) and the strings file in `js/i18n/index.js` (add it to `HOME_LANGUAGES`).
 
-The language picker, search, and every UI string pick up the new language automatically.
+The language picker, search, and every UI string pick up the new language automatically - no changes to `js/app.js` are needed. If you register only one of the two halves, the app warns about it in the console at startup.
 
 ## Deployment
 
