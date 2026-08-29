@@ -246,4 +246,5 @@ def main():
               f"= {have + kept}/{len(picked)}")
 
 
-main()
+if __name__ == "__main__":
+    main()

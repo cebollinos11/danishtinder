@@ -57,6 +57,7 @@ export default {
     noDanishVoice: "На цьому пристрої немає данського голосу, тому вимова використовує інший. На iOS його можна додати в Налаштуваннях, Спецможливості, Озвучений контент, Голоси.",
     danishLabel: "dansk",
     sourceTatoeba: "Татоеба",
+    sourceHestenettet: "Хестенеттет",
     homeLangLabel: "українська",
     listen: "прослухати",
     showTranslation: "Показати переклад",

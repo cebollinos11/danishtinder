@@ -63,6 +63,7 @@ export default {
     noDanishVoice: "На овој уред нема дански глас, па изговорот користи друг глас. На iOS додај го во Поставки, Пристапност, Изговорена содржина, Гласови.",
     danishLabel: "dansk",
     sourceTatoeba: "Татоеба",
+    sourceHestenettet: "Хестенетет",
     homeLangLabel: "македонски",
     listen: "слушни",
     showTranslation: "Прикажи го преводот",

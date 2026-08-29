@@ -61,6 +61,7 @@ export default {
     noDanishVoice: "Bu cihazda Danca ses yok, bu yüzden telaffuz başka bir sesle yapılıyor. iOS'ta Ayarlar, Erişilebilirlik, Sesli İçerik, Sesler bölümünden ekleyebilirsin.",
     danishLabel: "dansk",
     sourceTatoeba: "Tatoeba",
+    sourceHestenettet: "Hestenettet",
     homeLangLabel: "türkçe",
     listen: "dinle",
     showTranslation: "Çeviriyi göster",

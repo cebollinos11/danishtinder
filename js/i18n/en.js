@@ -60,6 +60,7 @@ export default {
     noDanishVoice: "No Danish voice on this device, so pronunciation uses another voice. On iOS add one under Settings, Accessibility, Spoken Content, Voices.",
     danishLabel: "dansk",
     sourceTatoeba: "Tatoeba",
+    sourceHestenettet: "Hestenettet",
     homeLangLabel: "english",
     listen: "listen",
     showTranslation: "Show translation",

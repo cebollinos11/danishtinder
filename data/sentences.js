@@ -1,47 +1,78 @@
-// Sentence registry: stitches the Danish sentence spine (sentences.da.js)
-// together with one translation file per home language into the SENTENCES
-// array the app consumes. Same shape as WORDS, plus a `src` marker naming
-// where the sentence came from.
+// Sentence registry: stitches each Danish sentence spine together with one
+// translation file per home language into the SENTENCES array the app
+// consumes. Same shape as WORDS, plus a `src` marker naming where the
+// sentence came from.
 //
-// Unlike the word deck, this file is generated - see
-// tools/tatoeba_sentences.py. The sentences are real Danish from Tatoeba
-// (tatoeba.org), used under CC-BY 2.0 FR.
-import { DANISH } from "./sentences.da.js";
+// There are two spines, because no single free corpus gives both natural
+// Danish and volume:
+//   tatoeba     - tatoeba.org, CC-BY 2.0 FR. Curated but ~98% translated from
+//                 English, so only ~325 sentences read as native Danish.
+//   hestenettet - the hest section of Danish Gigaword (hestenettet.dk, a
+//                 Danish debate forum), CC0. Natively Danish throughout, which
+//                 is where the volume comes from.
+//
+// Both are generated - see tools/tatoeba_sentences.py and
+// tools/dagw_sentences.py. Adding a third source means adding an entry to
+// DECKS below, nothing else.
 import { parseTranslations } from "./parse.js";
-import { TRANSLATIONS as en } from "./sentences.en.js";
-import { TRANSLATIONS as uk } from "./sentences.uk.js";
-import { TRANSLATIONS as tr } from "./sentences.tr.js";
-import { TRANSLATIONS as es } from "./sentences.es.js";
-import { TRANSLATIONS as mk } from "./sentences.mk.js";
+import { DANISH as TATOEBA } from "./sentences.da.js";
+import { TRANSLATIONS as t_en } from "./sentences.en.js";
+import { TRANSLATIONS as t_uk } from "./sentences.uk.js";
+import { TRANSLATIONS as t_tr } from "./sentences.tr.js";
+import { TRANSLATIONS as t_es } from "./sentences.es.js";
+import { TRANSLATIONS as t_mk } from "./sentences.mk.js";
+import { DANISH as FORUM } from "./forum.da.js";
+import { TRANSLATIONS as f_en } from "./forum.en.js";
+import { TRANSLATIONS as f_uk } from "./forum.uk.js";
+import { TRANSLATIONS as f_tr } from "./forum.tr.js";
+import { TRANSLATIONS as f_es } from "./forum.es.js";
+import { TRANSLATIONS as f_mk } from "./forum.mk.js";
 
-var TRANSLATION_SETS = { en: en, uk: uk, tr: tr, es: es, mk: mk };
+var DECKS = [
+  {
+    src: "tatoeba",
+    danish: TATOEBA,
+    sets: { en: t_en, uk: t_uk, tr: t_tr, es: t_es, mk: t_mk },
+  },
+  {
+    src: "hestenettet",
+    danish: FORUM,
+    sets: { en: f_en, uk: f_uk, tr: f_tr, es: f_es, mk: f_mk },
+  },
+];
 
-export var SENTENCE_CODES = Object.keys(TRANSLATION_SETS);
-
-var MAPS = {};
-for (var c = 0; c < SENTENCE_CODES.length; c++)
-  MAPS[SENTENCE_CODES[c]] = parseTranslations(TRANSLATION_SETS[SENTENCE_CODES[c]]);
+export var SENTENCE_CODES = Object.keys(DECKS[0].sets);
 
 // One object per sentence: { da, src, <code>: translation, ... }. A missing
 // translation becomes "" rather than an error, exactly as in the word deck,
 // so a half-translated language still runs.
-export var SENTENCES = DANISH.trim()
-  .split("\n")
-  .map(function (line) {
-    return line.trim();
-  })
-  .filter(function (da) {
-    return !!da;
-  })
-  .map(function (da) {
-    var s = { da: da, src: "tatoeba" };
-    for (var i = 0; i < SENTENCE_CODES.length; i++)
-      s[SENTENCE_CODES[i]] = MAPS[SENTENCE_CODES[i]][da] || "";
-    return s;
-  });
+export var SENTENCES = [];
+for (var d = 0; d < DECKS.length; d++) {
+  var deck = DECKS[d];
+  var maps = {};
+  for (var c = 0; c < SENTENCE_CODES.length; c++)
+    maps[SENTENCE_CODES[c]] = parseTranslations(deck.sets[SENTENCE_CODES[c]]);
 
-for (var j = 0; j < SENTENCE_CODES.length; j++) {
-  var code = SENTENCE_CODES[j];
+  var lines = deck.danish
+    .trim()
+    .split("\n")
+    .map(function (line) {
+      return line.trim();
+    })
+    .filter(function (da) {
+      return !!da;
+    });
+
+  for (var i = 0; i < lines.length; i++) {
+    var s = { da: lines[i], src: deck.src };
+    for (var j = 0; j < SENTENCE_CODES.length; j++)
+      s[SENTENCE_CODES[j]] = maps[SENTENCE_CODES[j]][lines[i]] || "";
+    SENTENCES.push(s);
+  }
+}
+
+for (var k = 0; k < SENTENCE_CODES.length; k++) {
+  var code = SENTENCE_CODES[k];
   var missing = SENTENCES.filter(function (s) {
     return !s[code];
   }).length;

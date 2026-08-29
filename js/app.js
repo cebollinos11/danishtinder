@@ -405,6 +405,16 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     return t(S.home, key, vars);
   }
 
+  // Sentence cards credit their corpus. Both licences ask for it in some form
+  // (Tatoeba by CC-BY, hestenettet only by courtesy under CC0), and the badge
+  // also tells the learner which register they are looking at - curated
+  // textbook Danish or a real forum exchange. An unknown src falls back to the
+  // raw marker rather than showing an empty badge.
+  function srcLabel(src) {
+    var key = { tatoeba: "sourceTatoeba", hestenettet: "sourceHestenettet" }[src];
+    return key ? tt(key) : src;
+  }
+
   /* ------------------------------- header ------------------------------ */
 
   function closeSettingsMenu() {
@@ -645,10 +655,9 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       return txt.length > 14 ? " long" : "";
     }
 
-    // Sentence cards say where they came from - the deck is Tatoeba's work,
-    // under a licence that asks for credit.
+    // Sentence cards say where they came from.
     var srcBadge = current.src
-      ? '<span class="dk-src">' + esc(tt("sourceTatoeba")) + "</span>"
+      ? '<span class="dk-src">' + esc(srcLabel(current.src)) + "</span>"
       : "";
 
     var html =
@@ -1208,7 +1217,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
               esc(w.da) +
               '"><span class="dk-itemda">' +
               esc(w.da) +
-              (w.src ? ' <span class="dk-src">' + esc(tt("sourceTatoeba")) + "</span>" : "") +
+              (w.src ? ' <span class="dk-src">' + esc(srcLabel(w.src)) + "</span>" : "") +
               '</span><span class="dk-itemen">' +
               esc(w[S.home]) +
               "</span></button>" +
