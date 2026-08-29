@@ -57,6 +57,7 @@ export default {
     noSpeech: "Este navegador no tiene motor de voz, así que la pronunciación está desactivada.",
     noDanishVoice: "No hay voz danesa en este dispositivo, así que la pronunciación usa otra voz. En iOS puedes añadir una en Ajustes, Accesibilidad, Contenido hablado, Voces.",
     danishLabel: "dansk",
+    sourceTatoeba: "Tatoeba",
     homeLangLabel: "español",
     listen: "escuchar",
     showTranslation: "Mostrar la traducción",

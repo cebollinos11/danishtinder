@@ -59,6 +59,7 @@ export default {
     noSpeech: "This browser has no speech engine, so pronunciation is off.",
     noDanishVoice: "No Danish voice on this device, so pronunciation uses another voice. On iOS add one under Settings, Accessibility, Spoken Content, Voices.",
     danishLabel: "dansk",
+    sourceTatoeba: "Tatoeba",
     homeLangLabel: "english",
     listen: "listen",
     showTranslation: "Show translation",

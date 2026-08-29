@@ -60,6 +60,7 @@ export default {
     noSpeech: "Bu tarayıcıda konuşma motoru yok, bu yüzden telaffuz kapalı.",
     noDanishVoice: "Bu cihazda Danca ses yok, bu yüzden telaffuz başka bir sesle yapılıyor. iOS'ta Ayarlar, Erişilebilirlik, Sesli İçerik, Sesler bölümünden ekleyebilirsin.",
     danishLabel: "dansk",
+    sourceTatoeba: "Tatoeba",
     homeLangLabel: "türkçe",
     listen: "dinle",
     showTranslation: "Çeviriyi göster",

@@ -10,6 +10,7 @@
 // Nothing else needs to change - js/app.js reads translations by language code,
 // never by column position.
 import { DANISH } from "./words.da.js";
+import { parseTranslations } from "./parse.js";
 import { TRANSLATIONS as en } from "./words.en.js";
 import { TRANSLATIONS as uk } from "./words.uk.js";
 import { TRANSLATIONS as tr } from "./words.tr.js";
@@ -17,21 +18,6 @@ import { TRANSLATIONS as es } from "./words.es.js";
 import { TRANSLATIONS as mk } from "./words.mk.js";
 
 var TRANSLATION_SETS = { en: en, uk: uk, tr: tr, es: es, mk: mk };
-
-// "da|translation" lines -> { danish: translation }. Blank lines are skipped so
-// translation files can be grouped into readable sections.
-function parseTranslations(raw) {
-  var map = {};
-  var lines = raw.trim().split("\n");
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].trim();
-    if (!line) continue;
-    var sep = line.indexOf("|");
-    if (sep < 0) continue;
-    map[line.slice(0, sep).trim()] = line.slice(sep + 1).trim();
-  }
-  return map;
-}
 
 export var HOME_CODES = Object.keys(TRANSLATION_SETS);
 

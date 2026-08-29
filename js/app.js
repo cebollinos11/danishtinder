@@ -1,4 +1,5 @@
 import { WORDS, HOME_CODES } from "../data/words.js";
+import { SENTENCES } from "../data/sentences.js";
 import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
 (function () {
@@ -16,6 +17,12 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       if (ui.indexOf(HOME_CODES[j]) < 0)
         console.warn("[lang] " + HOME_CODES[j] + " has words but no js/i18n/" + HOME_CODES[j] + ".js");
   })();
+
+  // Words and sentences are separate pools for scheduling (a run ends on a
+  // sentence, see pickForSlot) but one deck for everything else: stats, the
+  // browse list and the progress totals are all keyed by `da` and do not care
+  // which file an entry came from.
+  var ENTRIES = WORDS.concat(SENTENCES);
 
   var KEY = "dansk:v1";
   var MISS_WEIGHT = 3;
@@ -324,15 +331,31 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
   /* ----------------------------- scheduler --------------------------- */
 
-  function remaining() {
-    return WORDS.filter(function (w) {
+  function notRetired(deck) {
+    return deck.filter(function (w) {
       var st = S.stats[w.da];
       return !(st && st.retired);
     });
   }
 
+  function remaining() {
+    return notRetired(ENTRIES);
+  }
+
+  // Every run ends on a sentence: the first RUN_LEN - 1 cards come from the
+  // word deck, the last from the sentence deck. Once the sentences run out the
+  // slot falls back to words rather than ending the run short.
+  function poolForSlot() {
+    if (S.runStep === RUN_LEN - 1) {
+      var sentences = notRetired(SENTENCES);
+      if (sentences.length) return sentences;
+    }
+    var words = notRetired(WORDS);
+    return words.length ? words : notRetired(SENTENCES);
+  }
+
   function pickNext(exclude) {
-    var pool = remaining();
+    var pool = poolForSlot();
     if (!pool.length) return null;
     if (pool.length > 1 && exclude) {
       var t2 = pool.filter(function (w) {
@@ -531,7 +554,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     if (!current) {
       viewEl.innerHTML =
         '<div class="dk-done"><div class="dk-donenum">' +
-        WORDS.length +
+        ENTRIES.length +
         '</div><p class="dk-donetext">' +
         esc(tt("doneText")) +
         "</p></div>";
@@ -541,7 +564,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     viewEl.innerHTML =
       '<div class="dk-stage">' +
       '<div class="dk-meter"><span>' +
-      esc(tt("leftOf", { left: left, total: WORDS.length })) +
+      esc(tt("leftOf", { left: left, total: ENTRIES.length })) +
       '</span><span class="dk-meter-sep"></span><span>' +
       esc(dirLabel(S.dir === "da-home")) +
       '</span><span class="dk-meter-sep"></span><span>' +
@@ -615,6 +638,19 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     var speakBtn =
       '<button class="dk-speak" data-speak="1">' + spkIcon() + " " + esc(tt("listen")) + "</button>";
 
+    // Sentences are several times longer than a word, so .long (which is tuned
+    // for a long compound noun) is still too big for them.
+    function sizeClass(txt) {
+      if (txt.length > 34) return " long is-sentence";
+      return txt.length > 14 ? " long" : "";
+    }
+
+    // Sentence cards say where they came from - the deck is Tatoeba's work,
+    // under a licence that asks for credit.
+    var srcBadge = current.src
+      ? '<span class="dk-src">' + esc(tt("sourceTatoeba")) + "</span>"
+      : "";
+
     var html =
       '<div class="dk-verdict v-yes" id="dk-vy">' + esc(tt("knewIt")) + "</div>" +
       '<div class="dk-verdict v-no" id="dk-vn">' + esc(tt("didntKnow")) + "</div>" +
@@ -622,11 +658,13 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       spine +
       "</div>" +
       '<div class="dk-cardbody">' +
-      '<div class="dk-lang">' +
+      '<div class="dk-langrow"><span class="dk-lang">' +
       esc(askDa ? tt("danishLabel") : tt("homeLangLabel")) +
+      "</span>" +
+      srcBadge +
       "</div>" +
       '<p class="dk-word' +
-      (promptTxt.length > 14 ? " long" : "") +
+      sizeClass(promptTxt) +
       '">' +
       esc(promptTxt) +
       "</p>" +
@@ -636,7 +674,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       '" id="dk-answer"><div class="dk-rule"></div><div class="dk-lang">' +
       esc(askDa ? tt("homeLangLabel") : tt("danishLabel")) +
       '</div><p class="dk-word dk-word-b' +
-      (answerTxt.length > 14 ? " long" : "") +
+      sizeClass(answerTxt) +
       '">' +
       esc(answerTxt) +
       "</p>" +
@@ -835,9 +873,9 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       if (S.runResults[i] !== false) continue;
       var da = S.runWords[i];
       var w = null;
-      for (var j = 0; j < WORDS.length; j++) {
-        if (WORDS[j].da === da) {
-          w = WORDS[j];
+      for (var j = 0; j < ENTRIES.length; j++) {
+        if (ENTRIES[j].da === da) {
+          w = ENTRIES[j];
           break;
         }
       }
@@ -1114,7 +1152,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
   function renderWords() {
     var q = query.trim().toLowerCase();
-    var hits = WORDS.filter(function (w) {
+    var hits = ENTRIES.filter(function (w) {
       if (
         q &&
         w.da.toLowerCase().indexOf(q) < 0 &&
@@ -1170,6 +1208,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
               esc(w.da) +
               '"><span class="dk-itemda">' +
               esc(w.da) +
+              (w.src ? ' <span class="dk-src">' + esc(tt("sourceTatoeba")) + "</span>" : "") +
               '</span><span class="dk-itemen">' +
               esc(w[S.home]) +
               "</span></button>" +
@@ -1248,8 +1287,8 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       return b.wrong - a.wrong;
     });
     trouble = trouble.slice(0, 15);
-    var left = WORDS.length - retired;
-    var untouched = WORDS.length - seen;
+    var left = ENTRIES.length - retired;
+    var untouched = ENTRIES.length - seen;
     var total = S.totals.right + S.totals.wrong;
     var acc = total ? Math.round((S.totals.right / total) * 100) : 0;
 
@@ -1269,7 +1308,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
           '</span></div><div class="dk-track"><div class="dk-fill ' +
           b[2] +
           '" style="width:' +
-          (b[1] / WORDS.length) * 100 +
+          (b[1] / ENTRIES.length) * 100 +
           '%"></div></div></div>'
         );
       })
@@ -1279,7 +1318,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       ? '<ul class="dk-list">' +
         trouble
           .map(function (tr) {
-            var w = WORDS.filter(function (x) {
+            var w = ENTRIES.filter(function (x) {
               return x.da === tr.da;
             })[0];
             return (
@@ -1298,7 +1337,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
     viewEl.innerHTML =
       '<div class="dk-panelwrap"><div class="dk-grid">' +
-      metric(tt("metricRetiredLabel"), retired, tt("metricRetiredSub", { n: WORDS.length })) +
+      metric(tt("metricRetiredLabel"), retired, tt("metricRetiredSub", { n: ENTRIES.length })) +
       metric(tt("metricAccuracyLabel"), acc + "%", tt("metricAccuracySub", { n: total })) +
       metric(tt("metricLeftLabel"), left, tt("metricLeftSub", { n: missed })) +
       "</div>" +
