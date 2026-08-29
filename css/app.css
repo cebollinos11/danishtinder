@@ -42,9 +42,13 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 
 .dk-deck{width:100%;flex:1 1 auto;display:flex;align-items:center;min-height:230px;padding-right:12px;}
 .dk-stack{position:relative;width:100%;}
-.dk-shadow{position:absolute;left:0;right:0;top:0;bottom:0;background:var(--card);border:1px solid var(--line);border-radius:3px;}
+.dk-shadow{position:absolute;left:0;right:0;top:0;bottom:0;background:var(--card);border:1px solid var(--line);border-radius:3px;transition:opacity .3s ease-in;}
 .dk-shadow-1{transform:translate(5px,5px) rotate(.5deg);opacity:.75;}
 .dk-shadow-2{transform:translate(10px,10px) rotate(1.1deg);opacity:.45;}
+/* The last card of a run has nothing behind it, so the stack leaves with it -
+   otherwise the deck sits there as a blank card while the run-end panel waits
+   for the sounds to finish. */
+.dk-stack.is-empty .dk-shadow{opacity:0;}
 
 .dk-card{position:relative;width:100%;background:var(--card);border:1px solid var(--line);border-radius:3px;display:flex;overflow:hidden;
   user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}

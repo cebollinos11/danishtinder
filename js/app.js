@@ -928,6 +928,21 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     }
     save();
 
+    // Nothing follows the last card of a run, so the deck empties out with
+    // it: the stack behind it fades rather than standing there as a blank
+    // card, and the controls stop inviting an answer while the run-end panel
+    // waits on the sounds. They are hidden, not removed, so nothing reflows.
+    if (runJustEnded) {
+      var stack = document.querySelector(".dk-stack");
+      if (stack) stack.classList.add("is-empty");
+      var pens = document.querySelector(".dk-penalties");
+      if (pens) pens.outerHTML = penaltyRow(); // marks the answer just given
+      var ctrls = document.getElementById("dk-controls");
+      if (ctrls) ctrls.style.visibility = "hidden";
+      var swipeHint = document.getElementById("dk-swipehint");
+      if (swipeHint) swipeHint.style.visibility = "hidden";
+    }
+
     var card = document.getElementById("dk-card");
     if (card) {
       card.className = "dk-card";
