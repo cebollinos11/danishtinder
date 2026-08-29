@@ -338,10 +338,6 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     });
   }
 
-  function remaining() {
-    return notRetired(ENTRIES);
-  }
-
   // Every run ends on a sentence: the first RUN_LEN - 1 cards come from the
   // word deck, the last from the sentence deck. Once the sentences run out the
   // slot falls back to words rather than ending the run short.
@@ -549,10 +545,39 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       };
   }
 
-  function dirLabel(daFirst) {
-    return daFirst
-      ? tt("danishLabel") + " → " + tt("homeLangLabel")
-      : tt("homeLangLabel") + " → " + tt("danishLabel");
+  // Windows ships no flag-emoji font, so 🇩🇰 renders as bare "DK" letters in
+  // desktop Chrome while looking fine on Android. Every flag the app draws is
+  // therefore inline SVG - same approach (and same 20x15 viewBox) as the
+  // picker flags in js/i18n/.
+  var DA_FLAG =
+    '<svg viewBox="0 0 20 15" aria-hidden="true">' +
+    '<rect width="20" height="15" fill="#C8102E"/>' +
+    '<path d="M7 0V15M0 7.5H20" stroke="#fff" stroke-width="3"/>' +
+    "</svg>";
+
+  function homeFlagSvg() {
+    var L = HOME_LANGUAGES[S.home];
+    return L && L.flag ? L.flag : "";
+  }
+
+  // A flag standing in for a language name. The name still ships as the
+  // accessible label, so dropping the words costs a screen reader nothing.
+  function flagIco(svg, label) {
+    return (
+      '<span class="dk-flagico" role="img" aria-label="' +
+      esc(label) +
+      '" title="' +
+      esc(label) +
+      '">' +
+      svg +
+      "</span>"
+    );
+  }
+
+  function langIco(da) {
+    return da
+      ? flagIco(DA_FLAG, tt("danishLabel"))
+      : flagIco(homeFlagSvg(), tt("homeLangLabel"));
   }
 
   function renderStudy() {
@@ -570,18 +595,8 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
         "</p></div>";
       return;
     }
-    var left = remaining().length;
     viewEl.innerHTML =
       '<div class="dk-stage">' +
-      '<div class="dk-meter"><span>' +
-      esc(tt("leftOf", { left: left, total: ENTRIES.length })) +
-      '</span><span class="dk-meter-sep"></span><span>' +
-      esc(dirLabel(S.dir === "da-home")) +
-      '</span><span class="dk-meter-sep"></span><span>' +
-      esc(tt("runOf", { step: S.runStep, total: RUN_LEN })) +
-      '</span><span class="dk-meter-sep"></span><span>' +
-      esc(tt("scoreLine", { right: S.runRight, wrong: S.runWrong })) +
-      "</span></div>" +
       penaltyRow() +
       '<div class="dk-deck"><div class="dk-stack">' +
       '<div class="dk-shadow dk-shadow-2"></div>' +
@@ -623,9 +638,13 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     var out = '<div class="dk-penalties">';
     for (var i = 0; i < RUN_LEN; i++) {
       var r = S.runResults[i];
-      if (r === true) out += '<span class="dk-pen is-yes" title="' + esc(tt("knewIt")) + '">🇩🇰</span>';
-      else if (r === false) out += '<span class="dk-pen is-no" title="' + esc(tt("didntKnow")) + '">💩</span>';
-      else out += '<span class="dk-pen is-pending">🇩🇰</span>';
+      if (r === true)
+        out += '<span class="dk-pen is-yes" title="' + esc(tt("knewIt")) + '">' + DA_FLAG + "</span>";
+      else if (r === false)
+        out += '<span class="dk-pen is-no" title="' + esc(tt("didntKnow")) + '">💩</span>';
+      // An unanswered slot stays empty: a greyed-out flag reads as a grid at
+      // this size, an empty slot reads as "not yet".
+      else out += '<span class="dk-pen is-pending"></span>';
     }
     return out + "</div>";
   }
@@ -667,9 +686,8 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       spine +
       "</div>" +
       '<div class="dk-cardbody">' +
-      '<div class="dk-langrow"><span class="dk-lang">' +
-      esc(askDa ? tt("danishLabel") : tt("homeLangLabel")) +
-      "</span>" +
+      '<div class="dk-langrow">' +
+      langIco(askDa) +
       srcBadge +
       "</div>" +
       '<p class="dk-word' +
@@ -680,9 +698,9 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       (askDa && speechOK ? speakBtn : "") +
       '<div class="dk-answer' +
       (revealed ? "" : " is-blurred") +
-      '" id="dk-answer"><div class="dk-rule"></div><div class="dk-lang">' +
-      esc(askDa ? tt("homeLangLabel") : tt("danishLabel")) +
-      '</div><p class="dk-word dk-word-b' +
+      '" id="dk-answer"><div class="dk-rule"></div>' +
+      langIco(!askDa) +
+      '<p class="dk-word dk-word-b' +
       sizeClass(answerTxt) +
       '">' +
       esc(answerTxt) +
@@ -869,11 +887,25 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     renderStudy();
   }
 
-  function missionDots() {
-    var out = '<div class="dk-mission-track">';
-    for (var i = 0; i < MISSION_LEN; i++)
-      out += '<span class="dk-mdot' + (i < S.missionRun ? " is-done" : "") + '">' + (i < S.missionRun ? "🟩" : "⬜") + "</span>";
-    return out + "</div>";
+  // Mission progress as one bar. It is rendered holding the *previous* run's
+  // fill and widened to the current one right after paint, so the run you just
+  // finished is the part you watch move.
+  function missionBar() {
+    var from = Math.max(0, S.missionRun - 1) / MISSION_LEN;
+    return (
+      '<div class="dk-mbar-wrap">' +
+      '<div class="dk-mbar-label">🚀 ' +
+      esc(tt("missionProgress", { n: S.missionRun, total: MISSION_LEN })) +
+      "</div>" +
+      '<div class="dk-mbar" role="progressbar" aria-valuemin="0" aria-valuemax="' +
+      MISSION_LEN +
+      '" aria-valuenow="' +
+      S.missionRun +
+      '"><span class="dk-mbar-fill" id="dk-mbar-fill" style="width:' +
+      (from * 100).toFixed(1) +
+      '%"></span></div>' +
+      "</div>"
+    );
   }
 
   function missedWordsThisRun() {
@@ -893,14 +925,23 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     return out;
   }
 
-  function statTile(icon, label) {
-    return (
-      '<div class="dk-runend-stat"><div class="dk-runend-stat-ico">' +
-      icon +
-      '</div><div class="dk-runend-stat-num">0</div><div class="dk-runend-stat-label">' +
-      esc(label) +
-      "</div></div>"
-    );
+  // The run's five answers replayed as icons - Danish flag for a hit, 💩 for
+  // a miss - popping in one after the other. Same information the old
+  // "4 of 5 correct" line carried, but you watch it land.
+  function runIconRow() {
+    var out = '<div class="dk-runend-icons">';
+    for (var i = 0; i < RUN_LEN; i++) {
+      var ok = S.runResults[i] === true;
+      out +=
+        '<span class="dk-runend-ico ' +
+        (ok ? "is-yes" : "is-no") +
+        '" style="animation-delay:' +
+        (0.5 + i * 0.16).toFixed(2) +
+        's">' +
+        (ok ? DA_FLAG : "💩") +
+        "</span>";
+    }
+    return out + "</div>";
   }
 
   // Counts an element's text up from 0 to `target`, easing out. Skips the
@@ -977,9 +1018,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
   function renderRunEnd() {
     var total = S.runRight + S.runWrong;
     var pct = total ? Math.round((S.runRight / total) * 100) : 0;
-    var daFirst = S.dir === "da-home";
     var missionComplete = S.missionRun >= MISSION_LEN;
-    var runsLeft = MISSION_LEN - S.missionRun;
     var missed = missedWordsThisRun();
     var pctClass = pct >= 90 ? " is-great" : pct < 50 ? " is-low" : "";
 
@@ -990,7 +1029,8 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
         missed
           .map(function (m) {
             return (
-              "<li><span class=\"dk-runend-missed-da\">🇩🇰 " +
+              '<li><span class="dk-runend-missed-da">' +
+              flagIco(DA_FLAG, tt("danishLabel")) +
               esc(m.da) +
               '</span><span class="dk-runend-missed-home">' +
               esc(m.home) +
@@ -1003,9 +1043,6 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
     viewEl.innerHTML =
       '<div class="dk-runend">' +
-      '<div class="dk-runend-dir">' +
-      esc(dirLabel(daFirst)) +
-      "</div>" +
       '<div class="dk-runend-title">' +
       (missionComplete ? "🏆 " : "🏁 ") +
       esc(missionComplete ? tt("missionCompleteTitle") : tt("runComplete")) +
@@ -1015,9 +1052,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       '" id="dk-runend-pct"><span id="dk-runend-pct-num">0</span>%' +
       (pct === 100 ? '<span class="dk-runend-fire" aria-hidden="true">🔥</span>' : "") +
       "</div>" +
-      '<p class="dk-runend-text">' +
-      esc(tt("runScoreLine", { right: S.runRight, total: total })) +
-      "</p>" +
+      runIconRow() +
       '<div class="dk-runend-xp-row">' +
       '<div class="dk-runend-xp" id="dk-runend-xp"><span class="dk-runend-xp-plus">+</span><span class="dk-runend-xp-num" id="dk-runend-xp-num">0</span><span class="dk-runend-xp-label">' +
       esc(tt("xpGainedLabel")) +
@@ -1028,23 +1063,14 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
           "</span></div>"
         : "") +
       "</div>" +
-      missionDots() +
-      '<div class="dk-runend-progress">🚀 ' +
-      esc(tt("missionProgress", { n: S.missionRun, total: MISSION_LEN })) +
-      "</div>" +
+      missionBar() +
       missedHtml +
-      '<div class="dk-runend-stats">' +
-      statTile("✅", tt("missionCorrectLabel")) +
-      statTile("🎯", tt("runsLeftLabel", { n: runsLeft })) +
-      "</div>" +
       '<button class="dk-runend-btn' +
       (missionComplete ? " is-complete" : "") +
       '" id="dk-run-continue">' +
       (missionComplete ? "🚀 " : "") +
       esc(missionComplete ? tt("startNextMissionBtn") : tt("runContinueBtn")) +
-      '<span class="dk-runend-next">' +
-      esc(dirLabel(!daFirst)) +
-      "</span></button>" +
+      "</button>" +
       (missionComplete && !reducedMotion() ? confettiHtml(28) : "") +
       "</div>";
 
@@ -1054,17 +1080,13 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
         if (pctWrap) pctWrap.classList.add("is-pulsing");
       },
     });
-    var statEls = viewEl.querySelectorAll(".dk-runend-stat-num");
-    animateCount(statEls[0], S.missionRight, {
-      onDone: function () {
-        statEls[0].classList.add("is-pulsing");
-      },
-    });
-    animateCount(statEls[1], runsLeft, {
-      onDone: function () {
-        statEls[1].classList.add("is-pulsing");
-      },
-    });
+    // Widen the mission bar from last run's fill to this one's, one frame
+    // after paint so the CSS transition has a starting value to move from.
+    var bar = document.getElementById("dk-mbar-fill");
+    if (bar)
+      requestAnimationFrame(function () {
+        bar.style.width = ((S.missionRun / MISSION_LEN) * 100).toFixed(1) + "%";
+      });
 
     // XP payout: tally the run's own points first, then (if the mission also
     // wrapped up) the bigger completion bonus, then finally roll the header
