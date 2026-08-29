@@ -329,6 +329,83 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     }
   }
 
+  /* --------------------- end-of-run media gate ----------------------- */
+  // Answering the last card of a run swaps the card out for the run-end
+  // panel, which would cut off whatever is still playing. These helpers let
+  // answer() hold that panel back until the card's exit animation, the
+  // correct/wrong clip and any Danish reading have all finished. Every wait
+  // is capped: a blocked audio element or a wedged speech engine can delay
+  // the panel, never withhold it.
+
+  var CARD_EXIT_MS = 300; // matches the .3s exit transition set in answer()
+  var MEDIA_CAP_MS = 8000;
+
+  // One-shot latch, in the plain-function style the rest of the file uses.
+  function latch() {
+    var settled = false;
+    var waiting = [];
+    return {
+      resolve: function () {
+        if (settled) return;
+        settled = true;
+        for (var i = 0; i < waiting.length; i++) waiting[i]();
+        waiting = [];
+      },
+      then: function (fn) {
+        if (settled) fn();
+        else waiting.push(fn);
+      },
+    };
+  }
+
+  function timerLatch(ms) {
+    var l = latch();
+    setTimeout(l.resolve, ms);
+    return l;
+  }
+
+  // Resolves once nothing is speaking and nothing is queued to speak.
+  // `speechArmed` covers the gap doReveal opens: a reading that only starts
+  // when the reveal clip ends is not yet visible to speechSynthesis.
+  var speechArmed = false;
+
+  function speechBusy() {
+    if (!speechOK) return false;
+    try {
+      var sy = window.speechSynthesis;
+      return !!(sy && (sy.speaking || sy.pending));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function speechLatch() {
+    var l = latch();
+    (function poll() {
+      if (!speechArmed && !speechBusy()) l.resolve();
+      else setTimeout(poll, 80);
+    })();
+    return l;
+  }
+
+  // Calls cb once every latch has resolved, or after capMs regardless.
+  function whenAll(latches, capMs, cb) {
+    var left = latches.length;
+    var fired = false;
+    function finish() {
+      if (fired) return;
+      fired = true;
+      clearTimeout(timer);
+      cb();
+    }
+    var timer = setTimeout(finish, capMs);
+    for (var i = 0; i < latches.length; i++)
+      latches[i].then(function () {
+        if (--left <= 0) finish();
+      });
+    if (!left) finish();
+  }
+
   /* ----------------------------- scheduler --------------------------- */
 
   function notRetired(deck) {
@@ -785,7 +862,12 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     if (revealed || busy) return;
     revealed = true;
     var word = current;
+    // The reading is queued behind the reveal clip, so flag it as armed -
+    // otherwise the end-of-run gate would see silence and let the panel in
+    // before the word is ever read.
+    speechArmed = S.autoSpeak && !askDa && speechOK;
     playSfx("reveal", function () {
+      speechArmed = false;
       if (S.autoSpeak && !askDa && current === word) speak(word.da);
     });
 
@@ -804,7 +886,8 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
   function answer(knew) {
     if (busy || !current) return;
     busy = true;
-    playSfx(knew ? "correct" : "wrong");
+    var answerSfx = latch();
+    playSfx(knew ? "correct" : "wrong", answerSfx.resolve);
     var da = current.da;
     var prev = S.stats[da] || { right: 0, wrong: 0, retired: false };
     S.stats[da] = {
@@ -855,13 +938,22 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       card.style.opacity = "0";
     }
 
-    setTimeout(function () {
+    function finish() {
       if (S.runStep < RUN_LEN) current = pickNext(da);
       revealed = false;
       busy = false;
       renderStudy();
       if (runJustEnded) playSfx(S.missionRun >= MISSION_LEN ? "missionEnd" : "runEnd");
-    }, 300);
+    }
+
+    if (!runJustEnded) {
+      setTimeout(finish, CARD_EXIT_MS);
+      return;
+    }
+    // Last card of the run: let the exit animation, the answer clip and any
+    // reading play out before the run-end panel takes over the deck. `busy`
+    // stays true for the whole wait, so nothing can be answered into the gap.
+    whenAll([timerLatch(CARD_EXIT_MS), answerSfx, speechLatch()], MEDIA_CAP_MS, finish);
   }
 
   // Flips study direction and starts the next run, rolling over into a
