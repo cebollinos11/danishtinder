@@ -79,10 +79,36 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .dk-answer.is-blurred{filter:blur(9px);opacity:.6;pointer-events:none;user-select:none;-webkit-user-select:none;}
 
 .dk-controls{width:100%;}
-.dk-reveal{width:100%;background:var(--ink);color:var(--paper);padding:17px;border-radius:3px;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;}
+.dk-reveal{width:100%;padding:16px;border-radius:3px;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;}
 .dk-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.dk-choice{padding:17px 10px;border-radius:3px;font-size:15px;font-weight:600;color:var(--card);display:flex;align-items:center;justify-content:center;gap:8px;}
-.dk-no{background:var(--red);} .dk-yes{background:var(--teal);}
+.dk-choice{padding:16px 10px;border-radius:3px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;}
+
+/* Reveal / didn't know / knew it / continue are the only things you press to
+   move the deck, so they get an actual raised surface: card paper, a hairline
+   border, and a hard 2px lip they sink into when pressed. Colour is carried by
+   the border, lip and text rather than a fill, to stay quiet next to the card.
+   The #dk-root prefix is what makes any of it stick - `#dk-root button` at the
+   top of this file resets background and colour and outranks a bare class. */
+#dk-root .dk-reveal,#dk-root .dk-choice,#dk-root .dk-runend-btn{
+  --lip:rgba(22,24,28,.22);
+  --lip-sh:0 2px 0 var(--lip);
+  background:var(--card);color:var(--ink);border:1px solid rgba(22,24,28,.3);
+  box-shadow:var(--lip-sh);
+  transition:transform .09s ease,box-shadow .09s ease;
+}
+#dk-root .dk-no{color:var(--red);border-color:rgba(200,16,46,.4);--lip:rgba(200,16,46,.35);}
+#dk-root .dk-yes{color:var(--teal);border-color:rgba(35,94,90,.4);--lip:rgba(35,94,90,.35);}
+@media (hover:hover){
+  #dk-root .dk-reveal:hover,#dk-root .dk-choice:hover,#dk-root .dk-runend-btn:hover{
+    transform:translateY(-1px);box-shadow:0 3px 0 var(--lip);
+  }
+}
+#dk-root .dk-reveal:active,#dk-root .dk-choice:active,#dk-root .dk-runend-btn:active{
+  transform:translateY(2px);box-shadow:0 0 0 var(--lip);
+}
+/* The run-end button pulses via box-shadow, which would otherwise win over the
+   pressed state - drop the pulse for the duration of the press. */
+#dk-root .dk-runend-btn:active{animation:none;}
 .dk-hint{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;border:1px solid currentColor;padding:1px 5px;border-radius:2px;}
 .dk-swipehint{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin:-4px 0 0;}
 
@@ -155,7 +181,7 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 .dk-runend-xp-bonus .dk-runend-xp-plus,.dk-runend-xp-bonus .dk-runend-xp-num{color:var(--card);}
 .dk-runend-xp-bonus .dk-runend-xp-label{color:rgba(251,251,248,.75);}
 .dk-runend-xp.is-pulsing{animation:dkNumPulse .38s cubic-bezier(.3,1.4,.4,1);}
-.dk-runend-btn{margin-top:10px;width:100%;background:var(--ink);color:var(--paper);padding:16px;border-radius:3px;font-size:15px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:5px;animation:dkBtnPulse 2.2s ease-in-out 1.15s infinite;}
+.dk-runend-btn{margin-top:10px;width:100%;padding:15px;border-radius:3px;font-size:15px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:5px;animation:dkBtnPulse 2.2s ease-in-out 1.15s infinite;}
 .dk-runend-btn.is-complete{animation-name:dkBtnPulseComplete;}
 
 /* Mission progress. The fill's width is set from JS one frame after paint, so
@@ -201,8 +227,8 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 @keyframes dkRunendPop{0%{opacity:0;transform:translateY(10px) scale(.92);}100%{opacity:1;transform:none;}}
 @keyframes dkNumPulse{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1);}}
 @keyframes dkFireWiggle{0%,100%{transform:rotate(-6deg) scale(1);}50%{transform:rotate(6deg) scale(1.1);}}
-@keyframes dkBtnPulse{0%,100%{box-shadow:0 0 0 0 rgba(22,24,28,.22);}50%{box-shadow:0 0 0 9px rgba(22,24,28,0);}}
-@keyframes dkBtnPulseComplete{0%,100%{box-shadow:0 0 0 0 rgba(35,94,90,.38);}50%{box-shadow:0 0 0 10px rgba(35,94,90,0);}}
+@keyframes dkBtnPulse{0%,100%{box-shadow:var(--lip-sh),0 0 0 0 rgba(22,24,28,.22);}50%{box-shadow:var(--lip-sh),0 0 0 9px rgba(22,24,28,0);}}
+@keyframes dkBtnPulseComplete{0%,100%{box-shadow:var(--lip-sh),0 0 0 0 rgba(35,94,90,.38);}50%{box-shadow:var(--lip-sh),0 0 0 10px rgba(35,94,90,0);}}
 @keyframes dkGlowPulse{0%,100%{box-shadow:0 0 0 0 rgba(35,94,90,.28);}50%{box-shadow:0 0 0 6px rgba(35,94,90,0);}}
 @keyframes dkConfettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(112vh) rotate(560deg);opacity:.15;}}
 
