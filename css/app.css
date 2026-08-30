@@ -94,10 +94,20 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
   --lip-sh:0 2px 0 var(--lip);
   background:var(--card);color:var(--ink);border:1px solid rgba(22,24,28,.3);
   box-shadow:var(--lip-sh);
-  transition:transform .09s ease,box-shadow .09s ease;
+  transition:transform .09s ease,box-shadow .09s ease,background-color .15s ease;
 }
-#dk-root .dk-no{color:var(--red);border-color:rgba(200,16,46,.4);--lip:rgba(200,16,46,.35);}
-#dk-root .dk-yes{color:var(--teal);border-color:rgba(35,94,90,.4);--lip:rgba(35,94,90,.35);}
+/* Reveal is the only control on screen at that step, so it gets the app's
+   strongest surface - the same solid ink fill as the active nav tab - to
+   read as the one thing to press. */
+#dk-root .dk-reveal{background:var(--ink);color:var(--paper);border-color:var(--ink);--lip:rgba(0,0,0,.4);}
+#dk-root .dk-no{background:rgba(200,16,46,.08);color:var(--red);border-color:rgba(200,16,46,.4);--lip:rgba(200,16,46,.35);}
+#dk-root .dk-yes{background:rgba(35,94,90,.08);color:var(--teal);border-color:rgba(35,94,90,.4);--lip:rgba(35,94,90,.35);}
+/* Continue carries you forward into the reward you just saw (the gold XP
+   readout above it), so it borrows gold rather than repeating ink or
+   teal/red. Mission complete swaps to teal - a bigger win gets the app's
+   "correct" colour, matching the teal pulse ring below. */
+#dk-root .dk-runend-btn{background:var(--gold);color:var(--card);border-color:var(--gold);--lip:rgba(140,101,9,.5);}
+#dk-root .dk-runend-btn.is-complete{background:var(--teal);border-color:var(--teal);--lip:rgba(17,58,55,.55);}
 @media (hover:hover){
   #dk-root .dk-reveal:hover,#dk-root .dk-choice:hover,#dk-root .dk-runend-btn:hover{
     transform:translateY(-1px);box-shadow:0 3px 0 var(--lip);
@@ -227,7 +237,7 @@ html,body{margin:0;padding:0;background:#E2E4DD;}
 @keyframes dkRunendPop{0%{opacity:0;transform:translateY(10px) scale(.92);}100%{opacity:1;transform:none;}}
 @keyframes dkNumPulse{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1);}}
 @keyframes dkFireWiggle{0%,100%{transform:rotate(-6deg) scale(1);}50%{transform:rotate(6deg) scale(1.1);}}
-@keyframes dkBtnPulse{0%,100%{box-shadow:var(--lip-sh),0 0 0 0 rgba(22,24,28,.22);}50%{box-shadow:var(--lip-sh),0 0 0 9px rgba(22,24,28,0);}}
+@keyframes dkBtnPulse{0%,100%{box-shadow:var(--lip-sh),0 0 0 0 rgba(201,151,31,.35);}50%{box-shadow:var(--lip-sh),0 0 0 9px rgba(201,151,31,0);}}
 @keyframes dkBtnPulseComplete{0%,100%{box-shadow:var(--lip-sh),0 0 0 0 rgba(35,94,90,.38);}50%{box-shadow:var(--lip-sh),0 0 0 10px rgba(35,94,90,0);}}
 @keyframes dkGlowPulse{0%,100%{box-shadow:0 0 0 0 rgba(35,94,90,.28);}50%{box-shadow:0 0 0 6px rgba(35,94,90,0);}}
 @keyframes dkConfettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(112vh) rotate(560deg);opacity:.15;}}
