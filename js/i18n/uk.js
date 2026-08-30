@@ -48,6 +48,7 @@ export default {
     danishLabel: "dansk",
     sourceTatoeba: "Татоеба",
     sourceHestenettet: "Хестенеттет",
+    sourceBlinkendeLygter: "Блінкенде Лігтер",
     homeLangLabel: "українська",
     listen: "прослухати",
     showTranslation: "Показати переклад",

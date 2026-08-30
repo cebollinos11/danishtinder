@@ -55,6 +55,7 @@ export default {
     danishLabel: "dansk",
     sourceTatoeba: "Татоеба",
     sourceHestenettet: "Хестенетет",
+    sourceBlinkendeLygter: "Блинкенде Лигтер",
     homeLangLabel: "македонски",
     listen: "слушни",
     showTranslation: "Прикажи го преводот",

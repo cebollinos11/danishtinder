@@ -50,6 +50,7 @@ export default {
     danishLabel: "dansk",
     sourceTatoeba: "Tatoeba",
     sourceHestenettet: "Hestenettet",
+    sourceBlinkendeLygter: "Blinkende Lygter",
     homeLangLabel: "español",
     listen: "escuchar",
     showTranslation: "Mostrar la traducción",

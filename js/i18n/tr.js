@@ -53,6 +53,7 @@ export default {
     danishLabel: "dansk",
     sourceTatoeba: "Tatoeba",
     sourceHestenettet: "Hestenettet",
+    sourceBlinkendeLygter: "Blinkende Lygter",
     homeLangLabel: "türkçe",
     listen: "dinle",
     showTranslation: "Çeviriyi göster",

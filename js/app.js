@@ -478,13 +478,17 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     return t(S.home, key, vars);
   }
 
-  // Sentence cards credit their corpus. Both licences ask for it in some form
+  // Sentence cards credit their corpus. The licences ask for it in some form
   // (Tatoeba by CC-BY, hestenettet only by courtesy under CC0), and the badge
   // also tells the learner which register they are looking at - curated
-  // textbook Danish or a real forum exchange. An unknown src falls back to the
-  // raw marker rather than showing an empty badge.
+  // textbook Danish, a real forum exchange, or film dialogue. An unknown src
+  // falls back to the raw marker rather than showing an empty badge.
   function srcLabel(src) {
-    var key = { tatoeba: "sourceTatoeba", hestenettet: "sourceHestenettet" }[src];
+    var key = {
+      tatoeba: "sourceTatoeba",
+      hestenettet: "sourceHestenettet",
+      blinkendelygter: "sourceBlinkendeLygter",
+    }[src];
     return key ? tt(key) : src;
   }
 

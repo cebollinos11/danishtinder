@@ -3,17 +3,20 @@
 // consumes. Same shape as WORDS, plus a `src` marker naming where the
 // sentence came from.
 //
-// There are two spines, because no single free corpus gives both natural
+// There are three spines, because no single free source gives both natural
 // Danish and volume:
-//   tatoeba     - tatoeba.org, CC-BY 2.0 FR. Curated but ~98% translated from
-//                 English, so only ~325 sentences read as native Danish.
-//   hestenettet - the hest section of Danish Gigaword (hestenettet.dk, a
-//                 Danish debate forum), CC0. Natively Danish throughout, which
-//                 is where the volume comes from.
+//   tatoeba         - tatoeba.org, CC-BY 2.0 FR. Curated but ~98% translated
+//                     from English, so only ~325 sentences read as native
+//                     Danish.
+//   hestenettet     - the hest section of Danish Gigaword (hestenettet.dk, a
+//                     Danish debate forum), CC0. Natively Danish throughout,
+//                     which is where the volume comes from.
+//   blinkendelygter - dialogue from the film Blinkende Lygter (2000), from a
+//                     multilingual CSV export with translations attached.
 //
-// Both are generated - see tools/tatoeba_sentences.py and
-// tools/dagw_sentences.py. Adding a third source means adding an entry to
-// DECKS below, nothing else.
+// All three are generated - see tools/tatoeba_sentences.py,
+// tools/dagw_sentences.py and tools/blinkendelygter_sentences.py. Adding
+// another source means adding an entry to DECKS below, nothing else.
 import { parseTranslations } from "./parse.js";
 import { DANISH as TATOEBA } from "./sentences.da.js";
 import { TRANSLATIONS as t_en } from "./sentences.en.js";
@@ -27,6 +30,12 @@ import { TRANSLATIONS as f_uk } from "./forum.uk.js";
 import { TRANSLATIONS as f_tr } from "./forum.tr.js";
 import { TRANSLATIONS as f_es } from "./forum.es.js";
 import { TRANSLATIONS as f_mk } from "./forum.mk.js";
+import { DANISH as LYGTER } from "./blinkendelygter.da.js";
+import { TRANSLATIONS as l_en } from "./blinkendelygter.en.js";
+import { TRANSLATIONS as l_uk } from "./blinkendelygter.uk.js";
+import { TRANSLATIONS as l_tr } from "./blinkendelygter.tr.js";
+import { TRANSLATIONS as l_es } from "./blinkendelygter.es.js";
+import { TRANSLATIONS as l_mk } from "./blinkendelygter.mk.js";
 
 var DECKS = [
   {
@@ -38,6 +47,11 @@ var DECKS = [
     src: "hestenettet",
     danish: FORUM,
     sets: { en: f_en, uk: f_uk, tr: f_tr, es: f_es, mk: f_mk },
+  },
+  {
+    src: "blinkendelygter",
+    danish: LYGTER,
+    sets: { en: l_en, uk: l_uk, tr: l_tr, es: l_es, mk: l_mk },
   },
 ];
 
