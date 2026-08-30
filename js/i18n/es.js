@@ -35,6 +35,7 @@ export default {
     pickerCancel: "Cancelar",
 
     runComplete: "Ronda completada",
+    runScoreCount: "{n} de {total}",
     runContinueBtn: "Empezar la siguiente ronda",
     missionProgress: "Ronda {n} de {total}",
     missionCompleteTitle: "¡Misión completada!",

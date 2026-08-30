@@ -37,6 +37,7 @@ export default {
     pickerCancel: "Cancel",
 
     runComplete: "Run complete",
+    runScoreCount: "{n} of {total}",
     runContinueBtn: "Start next run",
     missionProgress: "Run {n} of {total}",
     missionCompleteTitle: "Mission complete!",

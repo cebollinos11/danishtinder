@@ -40,6 +40,7 @@ export default {
     pickerCancel: "Откажи",
 
     runComplete: "Кругот заврши",
+    runScoreCount: "{n} од {total}",
     runContinueBtn: "Почни нов круг",
     missionProgress: "Круг {n} од {total}",
     missionCompleteTitle: "Мисијата е завршена!",

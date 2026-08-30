@@ -33,6 +33,7 @@ export default {
     pickerCancel: "Скасувати",
 
     runComplete: "Раунд завершено",
+    runScoreCount: "{n} з {total}",
     runContinueBtn: "Почати новий раунд",
     missionProgress: "Раунд {n} з {total}",
     missionCompleteTitle: "Місію завершено!",

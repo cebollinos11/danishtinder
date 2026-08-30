@@ -1005,9 +1005,6 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     var from = Math.max(0, S.missionRun - 1) / MISSION_LEN;
     return (
       '<div class="dk-mbar-wrap">' +
-      '<div class="dk-mbar-label">🚀 ' +
-      esc(tt("missionProgress", { n: S.missionRun, total: MISSION_LEN })) +
-      "</div>" +
       '<div class="dk-mbar" role="progressbar" aria-valuemin="0" aria-valuemax="' +
       MISSION_LEN +
       '" aria-valuenow="' +
@@ -1015,6 +1012,9 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       '"><span class="dk-mbar-fill" id="dk-mbar-fill" style="width:' +
       (from * 100).toFixed(1) +
       '%"></span></div>' +
+      '<div class="dk-mbar-label">' +
+      esc(tt("missionProgress", { n: S.missionRun, total: MISSION_LEN })) +
+      "</div>" +
       "</div>"
     );
   }
@@ -1131,10 +1131,18 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
     var pct = total ? Math.round((S.runRight / total) * 100) : 0;
     var missionComplete = S.missionRun >= MISSION_LEN;
     var missed = missedWordsThisRun();
-    var pctClass = pct >= 90 ? " is-great" : pct < 50 ? " is-low" : "";
+    // The field's colour is the headline. A finished mission outranks the
+    // score, so it takes gold however the last run itself went.
+    var fieldClass = missionComplete
+      ? " is-done"
+      : pct >= 90
+        ? " is-great"
+        : pct < 50
+          ? " is-low"
+          : "";
 
     var missedHtml = missed.length
-      ? '<div class="dk-runend-missed"><div class="dk-runend-missed-title">💥 ' +
+      ? '<div class="dk-runend-missed"><div class="dk-runend-missed-title">' +
         esc(tt("missedThisRun")) +
         '</div><ul class="dk-runend-missed-list">' +
         missed
@@ -1154,26 +1162,28 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
 
     viewEl.innerHTML =
       '<div class="dk-runend">' +
-      '<div class="dk-runend-title">' +
-      (missionComplete ? "🏆 " : "🏁 ") +
+      '<div class="dk-field' +
+      fieldClass +
+      '">' +
+      '<div class="dk-runend-kicker">' +
       esc(missionComplete ? tt("missionCompleteTitle") : tt("runComplete")) +
       "</div>" +
-      '<div class="dk-runend-pct' +
-      pctClass +
-      '" id="dk-runend-pct"><span id="dk-runend-pct-num">0</span>%' +
+      '<div class="dk-runend-pct" id="dk-runend-pct"><span id="dk-runend-pct-num">0</span>' +
+      '<span class="dk-runend-pct-sign">%</span>' +
       (pct === 100 ? '<span class="dk-runend-fire" aria-hidden="true">🔥</span>' : "") +
       "</div>" +
-      runIconRow() +
-      '<div class="dk-runend-xp-row">' +
-      '<div class="dk-runend-xp" id="dk-runend-xp"><span class="dk-runend-xp-plus">+</span><span class="dk-runend-xp-num" id="dk-runend-xp-num">0</span><span class="dk-runend-xp-label">' +
+      '<div class="dk-runend-line"><span>' +
+      esc(tt("runScoreCount", { n: S.runRight, total: total })) +
+      '</span><span class="dk-runend-sep" aria-hidden="true">/</span>' +
+      '<span class="dk-runend-xp" id="dk-runend-xp">+<span id="dk-runend-xp-num">0</span> ' +
       esc(tt("xpGainedLabel")) +
       "</span></div>" +
+      runIconRow() +
       (missionComplete
-        ? '<div class="dk-runend-xp dk-runend-xp-bonus" id="dk-runend-mxp"><span class="dk-runend-xp-plus">+</span><span class="dk-runend-xp-num" id="dk-runend-mxp-num">0</span><span class="dk-runend-xp-label">' +
+        ? '<div class="dk-runend-bonus" id="dk-runend-mxp"><span class="dk-runend-bonus-num">+<span id="dk-runend-mxp-num">0</span></span><span class="dk-runend-bonus-label">' +
           esc(tt("missionBonusLabel")) +
           "</span></div>"
         : "") +
-      "</div>" +
       missionBar() +
       missedHtml +
       '<button class="dk-runend-btn' +
@@ -1182,6 +1192,7 @@ import { HOME_LANGUAGES, DEFAULT_HOME, t } from "./i18n/index.js";
       (missionComplete ? "🚀 " : "") +
       esc(missionComplete ? tt("startNextMissionBtn") : tt("runContinueBtn")) +
       "</button>" +
+      "</div>" +
       (missionComplete && !reducedMotion() ? confettiHtml(28) : "") +
       "</div>";
 

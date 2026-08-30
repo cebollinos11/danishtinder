@@ -38,6 +38,7 @@ export default {
     pickerCancel: "İptal",
 
     runComplete: "Tur tamamlandı",
+    runScoreCount: "{total} üzerinden {n}",
     runContinueBtn: "Sonraki tura başla",
     missionProgress: "Tur {n} / {total}",
     missionCompleteTitle: "Görev tamamlandı!",
